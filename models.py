@@ -1,5 +1,5 @@
 from database import db
-from datetime import datetime, time
+from datetime import datetime, time, date
 import secrets
 
 class User(db.Model):
@@ -86,10 +86,30 @@ class Child(db.Model):
     birth_date = db.Column(db.Date)
     grade = db.Column(db.String(20))
     notes = db.Column(db.Text)
+    photo_url = db.Column(db.String(255))  # For uploaded photos
+    medical_info = db.Column(db.Text)  # Important medical information
+    emergency_contact = db.Column(db.String(100))  # Emergency contact name
+    emergency_phone = db.Column(db.String(20))  # Emergency contact phone
+    is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationship
     parent = db.relationship('Parent', backref=db.backref('children', lazy=True))
+    
+    def calculate_age(self):
+        """Calculate child's current age"""
+        if self.birth_date:
+            today = date.today()
+            return today.year - self.birth_date.year - ((today.month, today.day) < (self.birth_date.month, self.birth_date.day))
+        return None
+    
+    def get_age_display(self):
+        """Get formatted age display"""
+        age = self.calculate_age()
+        if age:
+            return f"{age} years old"
+        return "Age not specified"
 
     def __repr__(self):
         return f'<Child {self.name}>'
@@ -179,11 +199,21 @@ class Program(db.Model):
         if self.price_per_session:
             prices.append(f"{self.price_per_session:,.0f}₸/session")
         return " or ".join(prices) if prices else "Contact for pricing"
+    
+    def get_available_spots(self):
+        """Get number of available spots across all schedules"""
+        total_spots = 0
+        taken_spots = 0
+        
+        for schedule in self.schedules:
+            if schedule.is_active:
+                total_spots += schedule.max_students
+                taken_spots += len([e for e in schedule.enrollments if e.status == 'active'])
+        
+        return max(0, total_spots - taken_spots)
 
     def __repr__(self):
         return f'<Program {self.name} at {self.center.center_name}>'
-
-# NEW MODELS FOR PHASE 4: SCHEDULING SYSTEM
 
 class Schedule(db.Model):
     """Scheduled classes for programs"""
@@ -240,6 +270,18 @@ class Schedule(db.Model):
         return not (self.end_time <= other_schedule.start_time or 
                    self.start_time >= other_schedule.end_time)
     
+    def get_enrollment_count(self):
+        """Get number of active enrollments"""
+        return len([e for e in self.enrollments if e.status == 'active'])
+    
+    def get_available_spots(self):
+        """Get number of available spots"""
+        return max(0, self.max_students - self.get_enrollment_count())
+    
+    def is_full(self):
+        """Check if class is at capacity"""
+        return self.get_enrollment_count() >= self.max_students
+    
     def __repr__(self):
         return f'<Schedule {self.program.name} - {self.get_day_name()} {self.get_time_range()}>'
 
@@ -250,12 +292,24 @@ class Enrollment(db.Model):
     schedule_id = db.Column(db.Integer, db.ForeignKey('schedule.id'), nullable=False)
     
     # Enrollment details
-    enrollment_date = db.Column(db.Date, default=datetime.utcnow().date)
-    status = db.Column(db.String(20), default='active')  # active, paused, cancelled
+    enrollment_date = db.Column(db.Date, default=date.today)
+    start_date = db.Column(db.Date, default=date.today)
+    end_date = db.Column(db.Date)  # Optional end date
+    status = db.Column(db.String(20), default='active')  # active, paused, cancelled, completed
     
     # Payment info (basic)
     payment_method = db.Column(db.String(50))  # monthly, per_session, etc.
+    monthly_fee = db.Column(db.Float)
+    session_fee = db.Column(db.Float)
+    total_paid = db.Column(db.Float, default=0.0)
+    outstanding_balance = db.Column(db.Float, default=0.0)
+    next_payment_due = db.Column(db.Date)
+    
+    # Administrative
     notes = db.Column(db.Text)
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'))  # Who created this enrollment
+    approved_by = db.Column(db.Integer, db.ForeignKey('user.id'))  # Who approved this enrollment
+    approved_at = db.Column(db.DateTime)
     
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -264,7 +318,56 @@ class Enrollment(db.Model):
     # Relationships
     child = db.relationship('Child', backref=db.backref('enrollments', lazy=True))
     schedule = db.relationship('Schedule', backref=db.backref('enrollments', lazy=True))
+    creator = db.relationship('User', foreign_keys=[created_by])
+    approver = db.relationship('User', foreign_keys=[approved_by])
     
+    def get_program_name(self):
+        """Get the program name for this enrollment"""
+        return self.schedule.program.name
+    
+    def get_center_name(self):
+        """Get the center name for this enrollment"""
+        return self.schedule.program.center.center_name
+    
+    def get_schedule_info(self):
+        """Get formatted schedule information"""
+        return f"{self.schedule.get_day_name()} {self.schedule.get_time_range()}"
+    
+    def calculate_monthly_fee(self):
+        """Calculate monthly fee based on program pricing"""
+        if self.schedule.program.price_per_month:
+            return self.schedule.program.price_per_month
+        elif self.schedule.program.price_per_session:
+            # Estimate based on sessions per month (assume 4 sessions per month)
+            return self.schedule.program.price_per_session * 4
+        return 0.0
+    
+    def is_payment_overdue(self):
+        """Check if payment is overdue"""
+        if self.next_payment_due and self.outstanding_balance > 0:
+            return date.today() > self.next_payment_due
+        return False
+    
+    def get_status_display(self):
+        """Get user-friendly status display"""
+        status_map = {
+            'active': 'Active',
+            'paused': 'Paused',
+            'cancelled': 'Cancelled',
+            'completed': 'Completed'
+        }
+        return status_map.get(self.status, self.status.title())
+    
+    def get_status_badge_class(self):
+        """Get Bootstrap badge class for status"""
+        status_classes = {
+            'active': 'bg-success',
+            'paused': 'bg-warning',
+            'cancelled': 'bg-danger',
+            'completed': 'bg-info'
+        }
+        return status_classes.get(self.status, 'bg-secondary')
+
     def __repr__(self):
         return f'<Enrollment {self.child.name} in {self.schedule.program.name}>'
 
@@ -285,5 +388,63 @@ class Attendance(db.Model):
     # Relationships
     enrollment = db.relationship('Enrollment', backref=db.backref('attendance_records', lazy=True))
     
+    def get_status_display(self):
+        """Get user-friendly status display"""
+        status_map = {
+            'present': 'Present',
+            'absent': 'Absent',
+            'late': 'Late',
+            'excused': 'Excused'
+        }
+        return status_map.get(self.status, self.status.title())
+    
+    def get_status_badge_class(self):
+        """Get Bootstrap badge class for attendance status"""
+        status_classes = {
+            'present': 'bg-success',
+            'absent': 'bg-danger',
+            'late': 'bg-warning',
+            'excused': 'bg-info'
+        }
+        return status_classes.get(self.status, 'bg-secondary')
+
     def __repr__(self):
         return f'<Attendance {self.enrollment.child.name} - {self.class_date} ({self.status})>'
+
+# Additional helper model for notifications (optional)
+class Notification(db.Model):
+    """System notifications for users"""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    type = db.Column(db.String(50), default='info')  # info, warning, success, error
+    is_read = db.Column(db.Boolean, default=False)
+    action_url = db.Column(db.String(255))  # Optional URL for action
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationship
+    user = db.relationship('User', backref=db.backref('notifications', lazy=True))
+    
+    def get_type_icon(self):
+        """Get Bootstrap icon for notification type"""
+        type_icons = {
+            'info': 'bi-info-circle',
+            'warning': 'bi-exclamation-triangle',
+            'success': 'bi-check-circle',
+            'error': 'bi-x-circle'
+        }
+        return type_icons.get(self.type, 'bi-bell')
+    
+    def get_type_class(self):
+        """Get Bootstrap class for notification type"""
+        type_classes = {
+            'info': 'text-info',
+            'warning': 'text-warning',
+            'success': 'text-success',
+            'error': 'text-danger'
+        }
+        return type_classes.get(self.type, 'text-secondary')
+
+    def __repr__(self):
+        return f'<Notification {self.title} for {self.user.name}>'
