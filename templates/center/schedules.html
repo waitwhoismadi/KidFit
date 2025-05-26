@@ -23,11 +23,14 @@
                         <a class="nav-link active" href="{{ url_for('center_schedules') }}">
                             <i class="bi bi-calendar-week me-2"></i>Schedules
                         </a>
-                        <a class="nav-link" href="#profile">
-                            <i class="bi bi-building-gear me-2"></i>Profile Settings
+                        <a class="nav-link" href="{{ url_for('center_enrollments') }}">
+                            <i class="bi bi-people me-2"></i>Enrollments
                         </a>
-                        <a class="nav-link" href="#teachers">
-                            <i class="bi bi-people me-2"></i>Teachers
+                        <a class="nav-link" href="{{ url_for('center_teachers') }}">
+                            <i class="bi bi-person-workspace me-2"></i>Teachers
+                        </a>
+                        <a class="nav-link" href="{{ url_for('center_profile') }}">
+                            <i class="bi bi-building-gear me-2"></i>Profile Settings
                         </a>
                     </nav>
                 </div>

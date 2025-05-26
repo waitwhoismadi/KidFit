@@ -1,0 +1,53 @@
+kidfit/
+├── app.py                          # Main Flask application
+├── config.py                       # Configuration settings
+├── database.py                     # Database initialization
+├── models.py                       # Database models
+├── services.py                     # External services (geocoding)
+├── email_service.py               # Email notification service
+├── requirements.txt               # Python dependencies
+├── static/
+│   └── uploads/                   # File uploads directory
+│       ├── children/              # Child photos
+│       ├── centers/               # Center photos
+│       └── programs/              # Program photos
+├── templates/
+│   ├── base.html                  # Base template
+│   ├── index.html                 # Landing page
+│   ├── auth/                      # Authentication templates
+│   │   ├── login.html
+│   │   ├── register_choice.html
+│   │   ├── register_parent.html
+│   │   ├── register_center.html
+│   │   └── register_teacher.html
+│   ├── dashboards/                # Dashboard templates
+│   │   ├── parent_dashboard.html
+│   │   ├── center_dashboard.html
+│   │   └── teacher_dashboard.html
+│   ├── center/                    # Center management templates
+│   │   ├── programs.html
+│   │   ├── add_program.html
+│   │   ├── edit_program.html
+│   │   ├── schedules.html
+│   │   ├── add_schedule.html
+│   │   ├── edit_schedule.html
+│   │   ├── enrollments.html
+│   │   ├── teachers.html
+│   │   ├── profile.html
+│   │   └── analytics.html
+│   ├── parent/                    # Parent templates
+│   │   ├── children.html
+│   │   ├── add_child.html
+│   │   ├── edit_child.html
+│   │   └── enrollments.html
+│   ├── teacher/                   # Teacher templates
+│   │   ├── schedule.html
+│   │   └── students.html
+│   ├── public/                    # Public view templates
+│   │   ├── center_profile.html
+│   │   └── program_detail.html
+│   └── errors/                    # Error page templates
+│       ├── 404.html
+│       ├── 403.html
+│       └── 500.html
+└── logs/                          # Application logs (created automatically)

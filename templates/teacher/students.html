@@ -1,0 +1,346 @@
+{% extends "base.html" %}
+
+{% block title %}My Students - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="sidebar">
+                <div class="p-3">
+                    <h5 class="text-white mb-4">
+                        <i class="bi bi-person-workspace me-2"></i>Teaching Portal
+                    </h5>
+                    {% if teacher and teacher.center %}
+                    <div class="text-white-50 mb-3">
+                        <small>
+                            <i class="bi bi-building me-1"></i>{{ teacher.center.center_name }}
+                        </small>
+                    </div>
+                    {% endif %}
+                    <nav class="nav flex-column">
+                        <a class="nav-link" href="{{ url_for('teacher_dashboard') }}">
+                            <i class="bi bi-speedometer2 me-2"></i>Overview
+                        </a>
+                        <a class="nav-link" href="{{ url_for('teacher_schedule') }}">
+                            <i class="bi bi-calendar-week me-2"></i>My Schedule
+                        </a>
+                        <a class="nav-link active" href="{{ url_for('teacher_students') }}">
+                            <i class="bi bi-people me-2"></i>Students
+                        </a>
+                        <a class="nav-link" href="#classes">
+                            <i class="bi bi-journal-bookmark me-2"></i>Classes
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <div class="content-wrapper">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="fw-bold">My Students</h2>
+                    <span class="badge bg-success fs-6">{{ students_by_class|length }} Classes</span>
+                </div>
+                
+                {% if students_by_class %}
+                <!-- Students by Class -->
+                {% for class_name, class_data in students_by_class.items() %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="mb-0">
+                                    <i class="{{ class_data.schedule.program.category.icon }} me-2" 
+                                       style="color: {{ class_data.schedule.program.category.color }}"></i>
+                                    {{ class_name }}
+                                </h5>
+                                <small class="text-muted">{{ class_data.students|length }} enrolled students</small>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <span class="badge" style="background-color: {{ class_data.schedule.program.category.color }}20; 
+                                                          color: {{ class_data.schedule.program.category.color }}">
+                                    {{ class_data.schedule.program.category.name }}
+                                </span>
+                                <button class="btn btn-sm btn-outline-primary" onclick="exportClassList('{{ class_name }}')">
+                                    <i class="bi bi-download"></i> Export
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        {% if class_data.students %}
+                        <div class="row g-3">
+                            {% for enrollment in class_data.students %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card student-card">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            {% if enrollment.child.photo_url %}
+                                            <img src="{{ url_for('static', filename='uploads/' + enrollment.child.photo_url) }}" 
+                                                 class="rounded-circle me-3" style="width: 40px; height: 40px; object-fit: cover;">
+                                            {% else %}
+                                            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                                 style="width: 40px; height: 40px;">
+                                                <i class="bi bi-person text-white"></i>
+                                            </div>
+                                            {% endif %}
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1">{{ enrollment.child.name }}</h6>
+                                                <small class="text-muted">
+                                                    {% if enrollment.child.calculate_age() %}
+                                                        {{ enrollment.child.calculate_age() }} years old
+                                                    {% endif %}
+                                                    {% if enrollment.child.grade %}
+                                                        • {{ enrollment.child.grade }}
+                                                    {% endif %}
+                                                </small>
+                                            </div>
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
+                                                        data-bs-toggle="dropdown">
+                                                    <i class="bi bi-three-dots"></i>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li><a class="dropdown-item" href="#" onclick="viewStudentDetails({{ enrollment.child.id }})">
+                                                        <i class="bi bi-eye me-2"></i>View Details
+                                                    </a></li>
+                                                    <li><a class="dropdown-item" href="#" onclick="contactParent({{ enrollment.child.parent.id }})">
+                                                        <i class="bi bi-telephone me-2"></i>Contact Parent
+                                                    </a></li>
+                                                    <li><hr class="dropdown-divider"></li>
+                                                    <li><a class="dropdown-item" href="#" onclick="markAttendance({{ enrollment.id }})">
+                                                        <i class="bi bi-check-circle me-2"></i>Mark Attendance
+                                                    </a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <div class="small text-muted">
+                                                <i class="bi bi-calendar me-1"></i>Enrolled: {{ enrollment.enrollment_date.strftime('%B %d, %Y') }}
+                                            </div>
+                                            <div class="small text-muted">
+                                                <i class="bi bi-person me-1"></i>Parent: {{ enrollment.child.parent.user.name }}
+                                            </div>
+                                            {% if enrollment.child.parent.user.phone %}
+                                            <div class="small text-muted">
+                                                <i class="bi bi-telephone me-1"></i>{{ enrollment.child.parent.user.phone }}
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        {% if enrollment.child.notes %}
+                                        <div class="alert alert-info py-2">
+                                            <small><strong>Notes:</strong> {{ enrollment.child.notes }}</small>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <!-- Attendance Summary -->
+                                        <div class="row g-2 text-center">
+                                            <div class="col-6">
+                                                <div class="bg-success bg-opacity-10 p-2 rounded">
+                                                    <div class="fw-bold text-success">
+                                                        {{ enrollment.attendance_records|selectattr('status', 'equalto', 'present')|list|length }}
+                                                    </div>
+                                                    <small class="text-muted">Present</small>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="bg-danger bg-opacity-10 p-2 rounded">
+                                                    <div class="fw-bold text-danger">
+                                                        {{ enrollment.attendance_records|selectattr('status', 'equalto', 'absent')|list|length }}
+                                                    </div>
+                                                    <small class="text-muted">Absent</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div class="text-center text-muted py-3">
+                            <i class="bi bi-person-x display-4 mb-2"></i>
+                            <p>No students enrolled in this class yet.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+                
+                {% else %}
+                <!-- Empty State -->
+                <div class="text-center py-5">
+                    <i class="bi bi-people-x display-1 text-muted mb-4"></i>
+                    <h3>No Students Yet</h3>
+                    <p class="text-muted mb-4">
+                        You don't have any students assigned to your classes yet. 
+                        Students will appear here once they enroll in your scheduled classes.
+                    </p>
+                    <a href="{{ url_for('teacher_schedule') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-calendar-week me-2"></i>View My Schedule
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Student Details Modal -->
+<div class="modal fade" id="studentDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Student Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="studentDetailsContent">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Contact Parent Modal -->
+<div class="modal fade" id="contactParentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Contact Parent</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="contactParentContent">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Attendance Modal -->
+<div class="modal fade" id="attendanceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Mark Attendance</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="attendanceDate" class="form-label">Date</label>
+                    <input type="date" class="form-control" id="attendanceDate" value="{{ date.today().strftime('%Y-%m-%d') }}">
+                </div>
+                <div class="mb-3">
+                    <label for="attendanceStatus" class="form-label">Status</label>
+                    <select class="form-select" id="attendanceStatus">
+                        <option value="present">Present</option>
+                        <option value="absent">Absent</option>
+                        <option value="late">Late</option>
+                        <option value="excused">Excused</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="attendanceNotes" class="form-label">Notes (Optional)</label>
+                    <textarea class="form-control" id="attendanceNotes" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveAttendance">Save Attendance</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function viewStudentDetails(childId) {
+    fetch(`/teacher/student/${childId}/details`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('studentDetailsContent').innerHTML = data.html;
+                new bootstrap.Modal(document.getElementById('studentDetailsModal')).show();
+            } else {
+                alert('Error loading student details.');
+            }
+        })
+        .catch(error => {
+            alert('Error loading student details.');
+        });
+}
+
+function contactParent(parentId) {
+    fetch(`/teacher/parent/${parentId}/contact`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('contactParentContent').innerHTML = data.html;
+                new bootstrap.Modal(document.getElementById('contactParentModal')).show();
+            } else {
+                alert('Error loading parent contact information.');
+            }
+        })
+        .catch(error => {
+            alert('Error loading parent contact information.');
+        });
+}
+
+let currentEnrollmentId = null;
+
+function markAttendance(enrollmentId) {
+    currentEnrollmentId = enrollmentId;
+    new bootstrap.Modal(document.getElementById('attendanceModal')).show();
+}
+
+document.getElementById('saveAttendance').addEventListener('click', function() {
+    if (currentEnrollmentId) {
+        const data = {
+            enrollment_id: currentEnrollmentId,
+            date: document.getElementById('attendanceDate').value,
+            status: document.getElementById('attendanceStatus').value,
+            notes: document.getElementById('attendanceNotes').value
+        };
+        
+        fetch('/teacher/attendance/mark', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Attendance marked successfully!');
+                bootstrap.Modal.getInstance(document.getElementById('attendanceModal')).hide();
+                location.reload();
+            } else {
+                alert(data.error || 'Error marking attendance.');
+            }
+        })
+        .catch(error => {
+            alert('Error marking attendance. Please try again.');
+        });
+    }
+});
+
+function exportClassList(className) {
+    window.open(`/teacher/class/export?class=${encodeURIComponent(className)}`, '_blank');
+}
+</script>
+
+<style>
+.student-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.student-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+</style>
+{% endblock %}

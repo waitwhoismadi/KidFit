@@ -1,4 +1,3 @@
-<!-- templates/dashboards/parent_dashboard.html -->
 {% extends "base.html" %}
 
 {% block title %}Parent Dashboard - {{ super() }}{% endblock %}
@@ -64,6 +63,27 @@
         font-size: 0.75rem;
         color: #6b7280;
         margin-top: 0.25rem;
+    }
+    
+    .child-quick-card {
+        transition: all 0.2s ease-in-out;
+        cursor: pointer;
+    }
+    
+    .child-quick-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .program-card {
+        transition: all 0.2s ease-in-out;
+        border-left: 4px solid transparent;
+    }
+    
+    .program-card:hover {
+        transform: translateY(-2px);
+        border-left-color: var(--primary-color);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
 </style>
 {% endblock %}
@@ -138,8 +158,20 @@
                     <strong>Welcome, {{ session.user_name }}!</strong>
                     {% if children %}
                         You have {{ children|length }} child(ren) registered.
+                        <div class="mt-2">
+                            <a href="{{ url_for('manage_children') }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-people me-1"></i>Manage Children
+                            </a>
+                            <a href="{{ url_for('parent_enrollments') }}" class="btn btn-sm btn-outline-success">
+                                <i class="bi bi-journal-bookmark me-1"></i>View Enrollments
+                            </a>
+                        </div>
                     {% else %}
-                        <a href="#" class="alert-link">Add your first child</a> to start enrolling in programs.
+                        <div class="mt-2">
+                            <a href="{{ url_for('add_child') }}" class="btn btn-sm btn-primary">
+                                <i class="bi bi-person-plus me-1"></i>Add Your First Child
+                            </a>
+                        </div>
                     {% endif %}
                 </div>
 
@@ -150,13 +182,28 @@
                         <div class="card">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0"><i class="bi bi-people-fill me-2"></i>Your Children</h5>
-                                <a href="{{ url_for('manage_children') }}" class="btn btn-sm btn-outline-primary">Manage All</a>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-plus-circle me-1"></i>Quick Actions
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="{{ url_for('add_child') }}">
+                                            <i class="bi bi-person-plus me-2"></i>Add Child
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('manage_children') }}">
+                                            <i class="bi bi-people me-2"></i>Manage All Children
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('parent_enrollments') }}">
+                                            <i class="bi bi-journal-bookmark me-2"></i>View All Enrollments
+                                        </a></li>
+                                    </ul>
+                                </div>
                             </div>
                             <div class="card-body">
                                 <div class="row g-3">
                                     {% for child in children[:4] %}
                                     <div class="col-md-3">
-                                        <div class="card h-100 bg-light">
+                                        <div class="card child-quick-card h-100 bg-light" onclick="selectChildForEnrollment({{ child.id }}, '{{ child.name }}')">
                                             <div class="card-body text-center p-3">
                                                 {% if child.photo_url %}
                                                 <img src="{{ url_for('static', filename='uploads/' + child.photo_url) }}" 
@@ -174,10 +221,7 @@
                                                     {{ child.enrollments|selectattr('status', 'equalto', 'active')|list|length }} Classes
                                                 </span>
                                                 <br>
-                                                <button class="btn btn-sm btn-primary mt-2" 
-                                                        onclick="showEnrollModal({{ child.id }}, '{{ child.name }}')">
-                                                    Quick Enroll
-                                                </button>
+                                                <small class="text-muted mt-1">Click to enroll</small>
                                             </div>
                                         </div>
                                     </div>
@@ -201,19 +245,6 @@
                                     {% endif %}
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-                {% else %}
-                <!-- No Children Prompt -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="alert alert-info">
-                            <h5><i class="bi bi-info-circle me-2"></i>Get Started</h5>
-                            <p class="mb-2">Add your children to start exploring and enrolling in education programs.</p>
-                            <a href="{{ url_for('add_child') }}" class="btn btn-primary">
-                                <i class="bi bi-person-plus me-2"></i>Add Your First Child
-                            </a>
                         </div>
                     </div>
                 </div>
@@ -256,7 +287,9 @@
                                         <small class="text-muted fw-bold">Featured Programs:</small>
                                         <div class="d-flex flex-wrap gap-1 mt-1">
                                             {% for program in center.programs[:3] %}
-                                            <span class="badge" style="background-color: {{ program.category.color }}20; color: {{ program.category.color }}">
+                                            <span class="badge program-badge" 
+                                                  style="background-color: {{ program.category.color }}20; color: {{ program.category.color }}"
+                                                  onclick="showProgramModal({{ program.id }}, {{ center.id }})">
                                                 <i class="{{ program.category.icon }} me-1"></i>{{ program.name }}
                                             </span>
                                             {% endfor %}
@@ -284,6 +317,11 @@
                                             {% if center.latitude and center.longitude %}
                                             <button class="btn btn-outline-primary btn-sm" onclick="focusOnCenter({{ center.latitude }}, {{ center.longitude }})">
                                                 <i class="bi bi-geo-alt"></i>
+                                            </button>
+                                            {% endif %}
+                                            {% if children %}
+                                            <button class="btn btn-success btn-sm" onclick="showCenterPrograms({{ center.id }}, '{{ center.center_name }}')">
+                                                <i class="bi bi-plus-circle"></i> Enroll
                                             </button>
                                             {% endif %}
                                         </div>
@@ -342,6 +380,70 @@
         </div>
     </div>
 </div>
+
+<!-- Enhanced Enrollment Modal -->
+<div class="modal fade" id="enrollmentModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-journal-plus me-2"></i>Enroll Child in Program
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Child Selection -->
+                <div id="childSelectionSection" class="mb-4">
+                    <h6>Select Child:</h6>
+                    <div class="row g-3" id="childSelection">
+                        {% for child in children %}
+                        <div class="col-md-3">
+                            <div class="card child-select-card" data-child-id="{{ child.id }}" onclick="selectChild({{ child.id }}, '{{ child.name }}')">
+                                <div class="card-body text-center p-3">
+                                    {% if child.photo_url %}
+                                    <img src="{{ url_for('static', filename='uploads/' + child.photo_url) }}" 
+                                         class="rounded-circle mb-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                    {% else %}
+                                    <div class="bg-primary rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" 
+                                         style="width: 40px; height: 40px;">
+                                        <i class="bi bi-person text-white"></i>
+                                    </div>
+                                    {% endif %}
+                                    <small class="fw-bold">{{ child.name }}</small>
+                                    <br><small class="text-muted">{{ child.get_age_display() }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Program Selection -->
+                <div id="programSelectionSection" style="display: none;">
+                    <h6>Available Programs for <span id="selectedChildName"></span>:</h6>
+                    <div id="programsContainer">
+                        <!-- Programs will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Program Quick View Modal -->
+<div class="modal fade" id="programModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="programModalTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="programModalBody">
+                <!-- Program details will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -358,6 +460,7 @@ let userMarker = null;
 let userLocation = null;
 let centersData = [];
 let selectedCategory = '';
+let selectedChild = null;
 
 // Initialize map
 function initializeMap() {
@@ -426,7 +529,12 @@ function updateMapMarkers() {
                     <small class="text-muted">
                         ${center.programs_count} Programs • ${center.teachers_count} Teachers
                     </small>
-                    <a href="/center/${center.id}" class="btn btn-primary btn-sm">View</a>
+                    <div class="btn-group btn-group-sm">
+                        <a href="/center/${center.id}" class="btn btn-primary btn-sm">View</a>
+                        {% if children %}
+                        <button class="btn btn-success btn-sm" onclick="showCenterPrograms(${center.id}, '${center.name}')">Enroll</button>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         `;
@@ -439,7 +547,189 @@ function updateMapMarkers() {
     document.getElementById('centersCount').textContent = filteredCenters.length;
 }
 
-// Filter functions
+// Enhanced enrollment functions
+function selectChildForEnrollment(childId, childName) {
+    selectedChild = { id: childId, name: childName };
+    showEnrollmentModal();
+}
+
+function showEnrollmentModal() {
+    {% if children %}
+    new bootstrap.Modal(document.getElementById('enrollmentModal')).show();
+    {% else %}
+    alert('Please add children to your family first before enrolling in programs.');
+    window.location.href = '{{ url_for('add_child') }}';
+    {% endif %}
+}
+
+function selectChild(childId, childName) {
+    // Highlight selected child
+    document.querySelectorAll('.child-select-card').forEach(card => {
+        card.classList.remove('border-primary', 'bg-primary', 'text-white');
+    });
+    
+    const selectedCard = document.querySelector(`[data-child-id="${childId}"]`);
+    selectedCard.classList.add('border-primary', 'bg-primary', 'text-white');
+    
+    selectedChild = { id: childId, name: childName };
+    document.getElementById('selectedChildName').textContent = childName;
+    
+    // Show program selection
+    document.getElementById('programSelectionSection').style.display = 'block';
+    
+    // Load available programs
+    loadAvailablePrograms(childId);
+}
+
+function loadAvailablePrograms(childId) {
+    const container = document.getElementById('programsContainer');
+    container.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
+    
+    fetch(`/api/child/${childId}/available-programs`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.programs && data.programs.length > 0) {
+                let html = '<div class="row g-3">';
+                data.programs.forEach(program => {
+                    html += `
+                        <div class="col-md-6">
+                            <div class="card program-card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <i class="${program.category_icon} display-6 me-3" style="color: ${program.category_color}"></i>
+                                        <div>
+                                            <h6 class="mb-1">${program.name}</h6>
+                                            <small class="text-muted">${program.center_name}</small>
+                                        </div>
+                                    </div>
+                                    
+                                    ${program.short_description ? `<p class="small text-muted">${program.short_description}</p>` : ''}
+                                    
+                                    <div class="mb-3">
+                                        <div class="row g-2 text-center">
+                                            <div class="col-6">
+                                                <small class="text-muted">
+                                                    <i class="bi bi-people me-1"></i>${program.age_range}
+                                                </small>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="text-muted">
+                                                    <i class="bi bi-currency-dollar me-1"></i>${program.price_display}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <small class="text-muted fw-bold">Available Times:</small>
+                                        ${program.schedules.map(schedule => 
+                                            `<div class="schedule-option mt-2">
+                                                <div class="d-flex justify-content-between align-items-center p-2 bg-light rounded">
+                                                    <div>
+                                                        <strong>${schedule.day_name}</strong> ${schedule.time_range}
+                                                        <br><small class="text-muted">${schedule.teacher_name}</small>
+                                                        ${schedule.room_name ? `<br><small class="text-muted">${schedule.room_name}</small>` : ''}
+                                                    </div>
+                                                    <div class="text-end">
+                                                        <small class="text-muted">${schedule.available_spots}/${schedule.max_students} spots</small>
+                                                        <br><button class="btn btn-sm btn-primary" onclick="enrollInSchedule(${childId}, ${schedule.id}, '${program.name}', '${schedule.day_name} ${schedule.time_range}')">
+                                                            Enroll
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>`
+                                        ).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="bi bi-info-circle display-4 text-muted mb-3"></i>
+                        <h5>No Available Programs</h5>
+                        <p class="text-muted">No programs are currently available for this child that match their age or aren't already enrolled.</p>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            container.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Error loading programs. Please try again.
+                </div>
+            `;
+        });
+}
+
+function enrollInSchedule(childId, scheduleId, programName, scheduleInfo) {
+    if (confirm(`Enroll ${selectedChild.name} in ${programName} (${scheduleInfo})?`)) {
+        fetch('/api/enroll', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                child_id: childId,
+                schedule_id: scheduleId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                bootstrap.Modal.getInstance(document.getElementById('enrollmentModal')).hide();
+                // Refresh the page to show updated enrollment
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                alert(data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error processing enrollment. Please try again.');
+        });
+    }
+}
+
+function showCenterPrograms(centerId, centerName) {
+    {% if children %}
+    // If only one child, select automatically
+    {% if children|length == 1 %}
+    selectedChild = { id: {{ children[0].id }}, name: '{{ children[0].name }}' };
+    document.getElementById('selectedChildName').textContent = '{{ children[0].name }}';
+    document.getElementById('childSelectionSection').style.display = 'none';
+    document.getElementById('programSelectionSection').style.display = 'block';
+    loadAvailablePrograms({{ children[0].id }});
+    {% endif %}
+    
+    showEnrollmentModal();
+    {% else %}
+    alert('Please add children to your family first.');
+    window.location.href = '{{ url_for('add_child') }}';
+    {% endif %}
+}
+
+function showProgramModal(programId, centerId) {
+    fetch(`/api/program/${programId}/details`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('programModalTitle').textContent = data.program.name;
+                document.getElementById('programModalBody').innerHTML = data.html;
+                new bootstrap.Modal(document.getElementById('programModal')).show();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading program details:', error);
+        });
+}
+
+// Filter functions (keep existing ones)
 function filterCenters() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const centerCards = document.querySelectorAll('.center-card');
@@ -567,7 +857,46 @@ function showMapView() {
 // Initialize map when page loads
 document.addEventListener('DOMContentLoaded', function() {
     initializeMap();
+    
+    // Check for URL parameters (e.g., from program detail page)
+    const urlParams = new URLSearchParams(window.location.search);
+    const enrollScheduleId = urlParams.get('enroll_schedule');
+    if (enrollScheduleId) {
+        // Show enrollment modal for specific schedule
+        setTimeout(() => {
+            showEnrollmentModal();
+        }, 1000);
+    }
 });
 </script>
-{% endblock %}
 
+<style>
+.child-select-card {
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    border: 2px solid transparent;
+}
+
+.child-select-card:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.program-badge {
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.program-badge:hover {
+    transform: scale(1.05);
+}
+
+.schedule-option {
+    transition: all 0.2s ease-in-out;
+}
+
+.schedule-option:hover {
+    background-color: rgba(79, 70, 229, 0.05) !important;
+}
+</style>
+{% endblock %}
