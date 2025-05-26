@@ -1,0 +1,253 @@
+
+<!-- templates/dashboards/teacher_dashboard.html -->
+{% extends "base.html" %}
+
+{% block title %}Teacher Dashboard - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="sidebar">
+                <div class="p-3">
+                    <h5 class="text-white mb-4">
+                        <i class="bi bi-person-workspace me-2"></i>Teaching Portal
+                    </h5>
+                    {% if center %}
+                    <div class="text-white-50 mb-3">
+                        <small>
+                            <i class="bi bi-building me-1"></i>{{ center.center_name }}
+                        </small>
+                    </div>
+                    {% endif %}
+                    <nav class="nav flex-column">
+                        <a class="nav-link active" href="#overview">
+                            <i class="bi bi-speedometer2 me-2"></i>Overview
+                        </a>
+                        <a class="nav-link" href="{{ url_for('teacher_schedule') }}">
+                            <i class="bi bi-calendar-week me-2"></i>My Schedule
+                        </a>
+                        <a class="nav-link" href="{{ url_for('teacher_students') }}">
+                            <i class="bi bi-people me-2"></i>Students
+                        </a>
+                        <a class="nav-link" href="#classes">
+                            <i class="bi bi-journal-bookmark me-2"></i>Classes
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <div class="content-wrapper">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="fw-bold">Teacher Dashboard</h2>
+                    <span class="badge bg-warning fs-6">Teacher Account</span>
+                </div>
+                
+                <!-- Welcome Message -->
+                {% if teacher and center %}
+                <div class="alert alert-success">
+                    <i class="bi bi-person-check me-2"></i>
+                    <strong>Welcome, {{ teacher.user.name }}!</strong> 
+                    You're now part of {{ center.center_name }}.
+                    {% if teacher.specialization %}
+                        <br><small>Specialization: {{ teacher.specialization }}</small>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                <!-- Stats Cards -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-4">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <i class="bi bi-calendar-check display-4 text-primary mb-2"></i>
+                                <h4>{{ stats.today_classes }}</h4>
+                                <p class="text-muted mb-0">Today's Classes</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <i class="bi bi-people display-4 text-success mb-2"></i>
+                                <h4>{{ stats.students }}</h4>
+                                <p class="text-muted mb-0">Students</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <i class="bi bi-journal-bookmark display-4 text-info mb-2"></i>
+                                <h4>{{ stats.assigned_classes }}</h4>
+                                <p class="text-muted mb-0">Assigned Classes</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Teacher Information -->
+                {% if teacher %}
+                <div class="row g-4 mb-4">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-person-badge me-2"></i>Teacher Profile
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Name:</strong> {{ teacher.user.name }}</p>
+                                        <p><strong>Email:</strong> {{ teacher.user.email }}</p>
+                                        {% if teacher.user.phone %}
+                                        <p><strong>Phone:</strong> {{ teacher.user.phone }}</p>
+                                        {% endif %}
+                                        {% if teacher.specialization %}
+                                        <p><strong>Specialization:</strong> {{ teacher.specialization }}</p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        {% if center %}
+                                        <p><strong>Center:</strong> {{ center.center_name }}</p>
+                                        <p><strong>Center Address:</strong> {{ center.address }}</p>
+                                        {% endif %}
+                                        <p><strong>Joined:</strong> {{ teacher.hire_date.strftime('%B %d, %Y') if teacher.hire_date else 'Recently' }}</p>
+                                    </div>
+                                </div>
+                                {% if teacher.bio %}
+                                <hr>
+                                <h6>Bio:</h6>
+                                <p class="text-muted">{{ teacher.bio }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-building me-2"></i>Center Info
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                {% if center %}
+                                <h6>{{ center.center_name }}</h6>
+                                <p class="text-muted small">{{ center.description or "Education center providing quality programs." }}</p>
+                                <hr>
+                                <p class="small mb-1">
+                                    <i class="bi bi-geo-alt me-1"></i>{{ center.address }}
+                                </p>
+                                {% if center.website %}
+                                <p class="small mb-1">
+                                    <i class="bi bi-globe me-1"></i>
+                                    <a href="{{ center.website }}" target="_blank">Website</a>
+                                </p>
+                                {% endif %}
+                                {% else %}
+                                <p class="text-muted">Center information not available</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+            <!-- Schedule and Students -->
+                <div class="row g-4">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-calendar-week me-2"></i>Today's Schedule
+                                </h5>
+                                <a href="{{ url_for('teacher_schedule') }}" class="btn btn-sm btn-outline-primary">
+                                    View Full Schedule
+                                </a>
+                            </div>
+                            <div class="card-body">
+                                {% if today_classes %}
+                                    {% for schedule in today_classes %}
+                                    <div class="d-flex align-items-center p-3 mb-3 bg-light rounded">
+                                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                                            <i class="{{ schedule.program.category.icon }} text-white"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">{{ schedule.program.name }}</h6>
+                                            <div class="d-flex align-items-center text-muted small">
+                                                <i class="bi bi-clock me-1"></i>
+                                                <span class="me-3">{{ schedule.get_time_range() }}</span>
+                                                <i class="bi bi-people me-1"></i>
+                                                <span class="me-3">{{ schedule.enrollments|length }}/{{ schedule.max_students }} students</span>
+                                                {% if schedule.room_name %}
+                                                <i class="bi bi-geo-alt me-1"></i>
+                                                <span>{{ schedule.room_name }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span class="badge" style="background-color: {{ schedule.program.category.color }}20; color: {{ schedule.program.category.color }}">
+                                                {{ schedule.program.category.name }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-center text-muted py-4">
+                                        <i class="bi bi-calendar-check display-4 mb-3"></i>
+                                        <h5>No Classes Today</h5>
+                                        <p class="mb-0">Enjoy your day off! Check your full schedule to see upcoming classes.</p>
+                                        <a href="{{ url_for('teacher_schedule') }}" class="btn btn-outline-primary mt-2">
+                                            View Weekly Schedule
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-people me-2"></i>Quick Stats
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span>Total Students:</span>
+                                    <span class="badge bg-success fs-6">{{ stats.students }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span>Weekly Classes:</span>
+                                    <span class="badge bg-info fs-6">{{ stats.assigned_classes }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span>Today's Classes:</span>
+                                    <span class="badge bg-primary fs-6">{{ stats.today_classes }}</span>
+                                </div>
+                                
+                                <hr>
+                                
+                                <div class="d-grid gap-2">
+                                    <a href="{{ url_for('teacher_schedule') }}" class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-calendar-week me-1"></i>Full Schedule
+                                    </a>
+                                    <a href="{{ url_for('teacher_students') }}" class="btn btn-outline-success btn-sm">
+                                        <i class="bi bi-people me-1"></i>View Students
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

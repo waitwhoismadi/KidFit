@@ -1,0 +1,256 @@
+<!-- templates/dashboards/center_dashboard.html -->
+{% extends "base.html" %}
+
+{% block title %}Center Dashboard - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="sidebar">
+                <div class="p-3">
+                    <h5 class="text-white mb-4">
+                        <i class="bi bi-building me-2"></i>{{ center.center_name if center else "Center Management" }}
+                    </h5>
+                    <nav class="nav flex-column">
+                        <a class="nav-link active" href="#overview">
+                            <i class="bi bi-speedometer2 me-2"></i>Overview
+                        </a>
+                        <a class="nav-link" href="{{ url_for('center_programs') }}">
+                            <i class="bi bi-book me-2"></i>Programs
+                        </a>
+                        <a class="nav-link" href="{{ url_for('center_schedules') }}">
+                            <i class="bi bi-calendar-week me-2"></i>Schedules
+                        </a>
+                        <a class="nav-link" href="#profile">
+                            <i class="bi bi-building-gear me-2"></i>Profile Settings
+                        </a>
+                        <a class="nav-link" href="#teachers">
+                            <i class="bi bi-people me-2"></i>Teachers
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <div class="content-wrapper">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="fw-bold">Center Dashboard</h2>
+                    <span class="badge bg-success fs-6">Center Account</span>
+                </div>
+                
+                <!-- Welcome Message -->
+                {% if center %}
+                <div class="alert alert-success">
+                    <i class="bi bi-building-check me-2"></i>
+                    <strong>Welcome, {{ center.center_name }}!</strong> Your center is now registered and visible to parents.
+                </div>
+                {% endif %}
+                
+                <!-- Stats Cards -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <i class="bi bi-book display-4 text-primary mb-2"></i>
+                                <h4>{{ stats.programs }}</h4>
+                                <p class="text-muted mb-0">Programs</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <i class="bi bi-people display-4 text-success mb-2"></i>
+                                <h4>{{ stats.teachers }}</h4>
+                                <p class="text-muted mb-0">Teachers</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <i class="bi bi-person-plus display-4 text-warning mb-2"></i>
+                                <h4>{{ stats.students }}</h4>
+                                <p class="text-muted mb-0">Students</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <i class="bi bi-calendar-check display-4 text-info mb-2"></i>
+                                <h4>{{ stats.classes }}</h4>
+                                <p class="text-muted mb-0">Classes</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row g-4">
+                    <!-- Recent Programs -->
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-book me-2"></i>Recent Programs
+                                </h6>
+                                <a href="{{ url_for('center_programs') }}" class="btn btn-sm btn-outline-primary">
+                                    View All
+                                </a>
+                            </div>
+                            <div class="card-body">
+                                {% if programs %}
+                                    {% for program in programs[:2] %}
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                                            <i class="{{ program.category.icon }} text-white small"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="fw-bold small">{{ program.name }}</div>
+                                            <small class="text-muted">{{ program.category.get_full_path() }}</small>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-center text-muted py-2">
+                                        <small>No programs yet</small>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Schedules -->
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-calendar-week me-2"></i>Recent Schedules
+                                </h6>
+                                <a href="{{ url_for('center_schedules') }}" class="btn btn-sm btn-outline-success">
+                                    Manage
+                                </a>
+                            </div>
+                            <div class="card-body">
+                                {% if schedules %}
+                                    {% for schedule in schedules[:2] %}
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="bg-success rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px;">
+                                            <i class="bi bi-clock text-white small"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="fw-bold small">{{ schedule.program.name }}</div>
+                                            <small class="text-muted">{{ schedule.get_day_name() }} {{ schedule.get_time_range() }}</small>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="text-center text-muted py-2">
+                                        <small>No schedules yet</small>
+                                        <br><a href="{{ url_for('add_schedule') }}" class="btn btn-sm btn-success mt-1">Add Schedule</a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Teacher Invite Code -->
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-person-plus-fill me-2"></i>Teacher Invite Code
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                {% if center %}
+                                <div class="text-center">
+                                    <div class="bg-light p-3 rounded mb-3">
+                                        <h2 class="text-primary fw-bold">{{ center.invite_code }}</h2>
+                                    </div>
+                                    <p class="text-muted">
+                                        Share this code with teachers to invite them to your center.
+                                        They'll need this code during registration.
+                                    </p>
+                                    <button class="btn btn-outline-primary btn-sm" onclick="copyInviteCode()">
+                                        <i class="bi bi-clipboard me-1"></i>Copy Code
+                                    </button>
+                                </div>
+                                
+                                <!-- Teachers List -->
+                                {% if teachers %}
+                                <hr>
+                                <h6>Your Teachers ({{ teachers|length }})</h6>
+                                {% for teacher in teachers[:3] %}
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="bg-success rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                        <i class="bi bi-person text-white small"></i>
+                                    </div>
+                                    <div>
+                                        <small class="fw-bold">{{ teacher.user.name }}</small>
+                                        {% if teacher.specialization %}
+                                        <br><small class="text-muted">{{ teacher.specialization }}</small>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                {% endif %}
+                                
+                                {% else %}
+                                <p class="text-muted">Invite code will appear here once your center profile is complete.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Quick Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <a href="{{ url_for('add_program') }}" class="btn btn-primary w-100">
+                                    <i class="bi bi-plus-circle me-2"></i>Add Program
+                                </a>
+                            </div>
+                            <div class="col-md-3">
+                                <a href="{{ url_for('add_schedule') }}" class="btn btn-success w-100">
+                                    <i class="bi bi-calendar-plus me-2"></i>Add Schedule
+                                </a>
+                            </div>
+                            <div class="col-md-3">
+                                <a href="{{ url_for('center_programs') }}" class="btn btn-info w-100">
+                                    <i class="bi bi-book-half me-2"></i>Manage Programs
+                                </a>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-warning w-100" onclick="copyInviteCode()">
+                                    <i class="bi bi-share me-2"></i>Share Invite
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyInviteCode() {
+    {% if center %}
+    const code = "{{ center.invite_code }}";
+    navigator.clipboard.writeText(code).then(function() {
+        alert('Invite code copied to clipboard: ' + code);
+    });
+    {% endif %}
+}
+</script>
+{% endblock %}

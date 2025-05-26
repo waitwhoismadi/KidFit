@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">
+                    Find the Best Education Centers in Astana
+                </h1>
+                <p class="lead mb-4">
+                    Connect with quality education centers, enroll your children in programs, 
+                    and help them discover their potential in our beautiful city.
+                </p>
+                <div class="d-flex gap-3">
+                    <a href="{{ url_for('register_choice') }}" class="btn btn-light btn-lg">
+                        <i class="bi bi-person-plus me-2"></i>Get Started
+                    </a>
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <div class="hero-image">
+                    <i class="bi bi-geo-alt-fill display-1 text-white opacity-75"></i>
+                    <i class="bi bi-mortarboard-fill display-1 text-white opacity-75 ms-3"></i>
+                    <i class="bi bi-people-fill display-1 text-white opacity-75 ms-3"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="fw-bold">How It Works</h2>
+                <p class="text-muted">Simple steps to connect with education centers</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <!-- For Parents -->
+            <div class="col-md-4">
+                <div class="card h-100 text-center p-4">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <i class="bi bi-people-fill display-4 text-primary"></i>
+                        </div>
+                        <h5 class="card-title">For Parents</h5>
+                        <p class="card-text">
+                            Search and discover education centers on an interactive map. 
+                            View profiles, programs, and enroll your children easily.
+                        </p>
+                        <a href="{{ url_for('register_parent') }}" class="btn btn-outline-primary">
+                            Register as Parent
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- For Centers -->
+            <div class="col-md-4">
+                <div class="card h-100 text-center p-4">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <i class="bi bi-building display-4 text-success"></i>
+                        </div>
+                        <h5 class="card-title">For Education Centers</h5>
+                        <p class="card-text">
+                            Create your center profile, manage programs and schedules, 
+                            and invite teachers to join your team.
+                        </p>
+                        <a href="{{ url_for('register_center') }}" class="btn btn-outline-success">
+                            Register Center
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- For Teachers -->
+            <div class="col-md-4">
+                <div class="card h-100 text-center p-4">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <i class="bi bi-person-workspace display-4 text-warning"></i>
+                        </div>
+                        <h5 class="card-title">For Teachers</h5>
+                        <p class="card-text">
+                            Join education centers using invite codes. 
+                            Manage your schedules, view student lists, and track classes.
+                        </p>
+                        <a href="{{ url_for('register_teacher') }}" class="btn btn-outline-warning">
+                            Join as Teacher
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h3 class="fw-bold mb-3">Ready to Get Started?</h3>
+                <p class="text-muted mb-4">
+                    Join our community and discover the best educational opportunities in Astana.
+                </p>
+                <a href="{{ url_for('register_choice') }}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-arrow-right me-2"></i>Choose Your Role
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

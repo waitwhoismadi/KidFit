@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Choose Registration Type - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="text-center mb-5">
+                <h2 class="fw-bold mt-5">Choose Your Role</h2>
+                <p class="text-muted">Select how you want to use our platform</p>
+            </div>
+            
+            <div class="row g-4">
+                <!-- Parent Registration -->
+                <div class="col-md-4">
+                    <div class="card h-100 text-center hover-card">
+                        <div class="card-body p-4">
+                            <div class="mb-3">
+                                <i class="bi bi-people-fill display-3 text-primary"></i>
+                            </div>
+                            <h5 class="card-title">Parent</h5>
+                            <p class="card-text text-muted">
+                                Register your family and search for education centers 
+                                to enroll your children in programs.
+                            </p>
+                            <ul class="list-unstyled text-start small text-muted">
+                                <li><i class="bi bi-check-circle text-success me-2"></i>Search centers on map</li>
+                                <li><i class="bi bi-check-circle text-success me-2"></i>View center profiles</li>
+                                <li><i class="bi bi-check-circle text-success me-2"></i>Enroll children</li>
+                            </ul>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <a href="{{ url_for('register_parent') }}" class="btn btn-primary w-100">
+                                Register as Parent
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Center Registration -->
+                <div class="col-md-4">
+                    <div class="card h-100 text-center hover-card">
+                        <div class="card-body p-4">
+                            <div class="mb-3">
+                                <i class="bi bi-building display-3 text-success"></i>
+                            </div>
+                            <h5 class="card-title">Education Center</h5>
+                            <p class="card-text text-muted">
+                                Register your education center and manage 
+                                programs, schedules, and teachers.
+                            </p>
+                            <ul class="list-unstyled text-start small text-muted">
+                                <li><i class="bi bi-check-circle text-success me-2"></i>Create center profile</li>
+                                <li><i class="bi bi-check-circle text-success me-2"></i>Manage programs</li>
+                                <li><i class="bi bi-check-circle text-success me-2"></i>Invite teachers</li>
+                            </ul>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <a href="{{ url_for('register_center') }}" class="btn btn-success w-100">
+                                Register Center
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Teacher Registration -->
+                <div class="col-md-4">
+                    <div class="card h-100 text-center hover-card">
+                        <div class="card-body p-4">
+                            <div class="mb-3">
+                                <i class="bi bi-person-workspace display-3 text-warning"></i>
+                            </div>
+                            <h5 class="card-title">Teacher</h5>
+                            <p class="card-text text-muted">
+                                Join an education center using an invite code 
+                                and manage your teaching schedule.
+                            </p>
+                            <ul class="list-unstyled text-start small text-muted">
+                                <li><i class="bi bi-check-circle text-success me-2"></i>Join with invite code</li>
+                                <li><i class="bi bi-check-circle text-success me-2"></i>View schedules</li>
+                                <li><i class="bi bi-check-circle text-success me-2"></i>Manage students</li>
+                            </ul>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <a href="{{ url_for('register_teacher') }}" class="btn btn-warning w-100">
+                                Join as Teacher
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-5">
+                <p class="text-muted">
+                    Already have an account? 
+                    <a href="{{ url_for('login') }}" class="text-decoration-none">Sign in here</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.hover-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+</style>
+{% endblock %}
