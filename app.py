@@ -1194,12 +1194,31 @@ def view_center(center_id):
     programs = Program.query.filter_by(center_id=center.id, is_active=True).all()
     teachers = Teacher.query.filter_by(center_id=center.id).all()
     
+    # Calculate statistics
+    active_schedules_count = 0
+    unique_categories = set()
+    
+    for program in programs:
+        # Count active schedules
+        for schedule in program.schedules:
+            if schedule.is_active:
+                active_schedules_count += 1
+        
+        # Collect unique categories
+        unique_categories.add(program.category.id)
+    
+    stats = {
+        'programs': len(programs),
+        'teachers': len(teachers),
+        'active_schedules': active_schedules_count,
+        'categories': len(unique_categories)
+    }
+    
     return render_template('public/center_profile.html', 
                          center=center, 
                          programs=programs,
-                         teachers=teachers)
-
-# UTILITY FUNCTIONS
+                         teachers=teachers,
+                         stats=stats)
 
 @app.route('/admin/geocode-centers')
 def geocode_existing_centers():

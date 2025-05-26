@@ -1,4 +1,3 @@
-<!-- templates/public/center_profile.html -->
 {% extends "base.html" %}
 
 {% block title %}{{ center.center_name }} - {{ super() }}{% endblock %}
@@ -316,14 +315,28 @@
                         </div>
                         <div class="col-6 text-center">
                             <div class="display-6 text-info">
-                                {% set active_schedules = programs|sum(attribute='schedules')|selectattr('is_active')|list %}
-                                {{ active_schedules|length }}
+                                {# Count active schedules using a loop instead of sum filter #}
+                                {% set ns = namespace(count=0) %}
+                                {% for program in programs %}
+                                    {% for schedule in program.schedules %}
+                                        {% if schedule.is_active %}
+                                            {% set ns.count = ns.count + 1 %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endfor %}
+                                {{ ns.count }}
                             </div>
                             <small class="text-muted">Classes</small>
                         </div>
                         <div class="col-6 text-center">
                             <div class="display-6 text-warning">
-                                {% set categories = programs|map(attribute='category')|unique|list %}
+                                {# Count unique categories #}
+                                {% set categories = [] %}
+                                {% for program in programs %}
+                                    {% if program.category not in categories %}
+                                        {% set _ = categories.append(program.category) %}
+                                    {% endif %}
+                                {% endfor %}
                                 {{ categories|length }}
                             </div>
                             <small class="text-muted">Categories</small>
