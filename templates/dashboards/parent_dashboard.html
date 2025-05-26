@@ -10,8 +10,9 @@
 <style>
     #map {
         height: 500px;
-        border-radius: 0.5rem;
+        border-radius: 1rem;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--gray-200);
     }
     
     .map-popup {
@@ -20,359 +21,654 @@
     
     .map-popup h6 {
         margin-bottom: 0.5rem;
-        color: var(--primary-color);
+        color: var(--primary-600);
     }
     
     .search-filters {
         background: white;
-        border-radius: 0.75rem;
+        border-radius: 1rem;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        padding: 1.5rem;
-        margin-bottom: 1rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        border: 1px solid var(--gray-200);
     }
     
     .category-filter {
         display: flex;
         flex-wrap: wrap;
-        gap: 0.5rem;
-        margin-top: 0.5rem;
+        gap: 0.75rem;
+        margin-top: 1rem;
     }
     
     .category-chip {
-        padding: 0.25rem 0.75rem;
-        border: 2px solid #e5e7eb;
-        border-radius: 1rem;
+        padding: 0.5rem 1rem;
+        border: 2px solid var(--gray-200);
+        border-radius: 2rem;
         background: white;
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all 0.3s ease;
         font-size: 0.875rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
     }
     
     .category-chip:hover {
-        border-color: var(--primary-color);
-        background: rgba(79, 70, 229, 0.1);
+        border-color: var(--primary-500);
+        background: var(--primary-50);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
     
     .category-chip.active {
-        border-color: var(--primary-color);
-        background: var(--primary-color);
+        border-color: var(--primary-600);
+        background: var(--primary-600);
         color: white;
+        box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
     }
     
     .distance-info {
         font-size: 0.75rem;
-        color: #6b7280;
+        color: var(--gray-500);
         margin-top: 0.25rem;
     }
     
     .child-quick-card {
-        transition: all 0.2s ease-in-out;
+        transition: all 0.3s ease;
         cursor: pointer;
+        border-radius: 1rem;
+        border: 2px solid var(--gray-200);
+        background: white;
     }
     
     .child-quick-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        border-color: var(--primary-300);
     }
     
     .program-card {
-        transition: all 0.2s ease-in-out;
+        transition: all 0.3s ease;
         border-left: 4px solid transparent;
+        border-radius: 1rem;
     }
     
     .program-card:hover {
         transform: translateY(-2px);
-        border-left-color: var(--primary-color);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        border-left-color: var(--primary-600);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        background-color: var(--primary-50);
+    }
+    
+    .center-card {
+        transition: all 0.3s ease;
+        border-radius: 1rem;
+        border: 1px solid var(--gray-200);
+        background: white;
+        overflow: hidden;
+    }
+    
+    .center-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        border-color: var(--primary-300);
+    }
+    
+    .hero-stats {
+        background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-800) 100%);
+        border-radius: 1rem;
+        color: white;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 1rem;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 800;
+        color: white;
+    }
+    
+    .stat-label {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    
+    .welcome-card {
+        background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-800) 100%);
+        border-radius: 1rem;
+        color: white;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .welcome-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+    }
+    
+    .welcome-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .quick-action-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        border-radius: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        font-weight: 500;
+    }
+    
+    .quick-action-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    .children-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .child-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        text-align: center;
+        border: 2px solid var(--gray-200);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .child-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        border-color: var(--primary-300);
+    }
+    
+    .child-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        margin: 0 auto 1rem;
+        background: linear-gradient(135deg, var(--primary-500), var(--primary-700));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+    
+    .center-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 1rem 1rem 0 0;
+    }
+    
+    .program-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        margin: 0.25rem 0.25rem 0.25rem 0;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    
+    .program-badge:hover {
+        transform: scale(1.05);
+    }
+    
+    .view-toggle {
+        background: white;
+        border-radius: 0.75rem;
+        padding: 0.5rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--gray-200);
+    }
+    
+    .view-toggle .btn {
+        border: none;
+        background: transparent;
+        color: var(--gray-600);
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        transition: all 0.2s ease;
+    }
+    
+    .view-toggle .btn.active {
+        background: var(--primary-600);
+        color: white;
+        box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+    }
+    
+    .fade-in {
+        animation: fadeIn 0.6s ease-out;
+    }
+    
+    @keyframes fadeIn {
+        from { 
+            opacity: 0; 
+            transform: translateY(20px); 
+        }
+        to { 
+            opacity: 1; 
+            transform: translateY(0); 
+        }
+    }
+    
+    .slide-in {
+        animation: slideIn 0.5s ease-out;
+    }
+    
+    @keyframes slideIn {
+        from { 
+            opacity: 0; 
+            transform: translateX(-20px); 
+        }
+        to { 
+            opacity: 1; 
+            transform: translateX(0); 
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .search-filters {
+            padding: 1rem;
+        }
+        
+        .children-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .hero-stats {
+            padding: 1rem;
+        }
+        
+        .welcome-card {
+            padding: 1rem;
+        }
+        
+        .category-filter {
+            gap: 0.5rem;
+        }
+        
+        .category-chip {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.8rem;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Search and Filter Section -->
-    <div class="search-filters">
-        <div class="row align-items-center">
-            <div class="col-md-8">
-                <div class="row">
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Search Centers</label>
-                        <input type="text" class="form-control" id="searchInput" 
-                               placeholder="Search by name, description, or address..."
-                               onkeyup="filterCenters()">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold">Your Location (Optional)</label>
-                        <div class="input-group">
-                            <input type="text" class="form-control" id="userLocationInput" 
-                                   placeholder="Enter your address for distance calculation">
-                            <button class="btn btn-outline-primary" type="button" onclick="setUserLocation()">
-                                <i class="bi bi-geo-alt"></i>
-                            </button>
+<div class="container-fluid py-4">
+    <!-- Welcome Section -->
+    <div class="welcome-card fade-in">
+        <div class="welcome-content">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-white bg-opacity-20 rounded-circle p-3 me-3">
+                            <i class="bi bi-house-heart fs-4"></i>
+                        </div>
+                        <div>
+                            <h1 class="h3 fw-bold mb-1">Welcome back, {{ session.user_name }}!</h1>
+                            <p class="mb-0 text-white text-opacity-90">
+                                {% if children %}
+                                    You have {{ children|length }} child{{ 'ren' if children|length != 1 else '' }} registered.
+                                {% else %}
+                                    Let's get started by adding your first child.
+                                {% endif %}
+                            </p>
                         </div>
                     </div>
-                </div>
-                
-                <div class="mt-3">
-                    <label class="form-label fw-bold">Filter by Category</label>
-                    <div class="category-filter">
-                        <span class="category-chip active" data-category="" onclick="filterByCategory('')">
-                            <i class="bi bi-grid me-1"></i>All Categories
-                        </span>
-                        {% for category in categories %}
-                        <span class="category-chip" data-category="{{ category.id }}" 
-                              onclick="filterByCategory({{ category.id }})"
-                              style="border-color: {{ category.color }}20;">
-                            <i class="{{ category.icon }} me-1"></i>{{ category.name }}
-                        </span>
-                        {% endfor %}
+                    
+                    <div class="d-flex flex-wrap gap-3">
+                        {% if children %}
+                            <a href="{{ url_for('manage_children') }}" class="quick-action-btn">
+                                <i class="bi bi-people me-2"></i>Manage Children
+                            </a>
+                            <a href="{{ url_for('parent_enrollments') }}" class="quick-action-btn">
+                                <i class="bi bi-journal-bookmark me-2"></i>View Enrollments
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('add_child') }}" class="quick-action-btn">
+                                <i class="bi bi-person-plus me-2"></i>Add Your First Child
+                            </a>
+                        {% endif %}
                     </div>
                 </div>
-            </div>
-            <div class="col-md-4 text-end">
-                <div class="d-flex justify-content-end gap-2">
-                    <button class="btn btn-outline-primary" onclick="showListView()">
-                        <i class="bi bi-list me-1"></i>List View
-                    </button>
-                    <button class="btn btn-primary" onclick="showMapView()">
-                        <i class="bi bi-map me-1"></i>Map View
-                    </button>
-                </div>
-                <div class="mt-2">
-                    <small class="text-muted">
-                        <i class="bi bi-info-circle me-1"></i>
-                        Found <span id="centersCount">{{ centers|length }}</span> centers
-                    </small>
+                <div class="col-lg-4 text-lg-end">
+                    <div class="row g-3">
+                        <div class="col-4">
+                            <div class="stat-item">
+                                <div class="stat-number">{{ centers|length }}</div>
+                                <div class="stat-label">Centers</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="stat-item">
+                                <div class="stat-number">{{ children|length }}</div>
+                                <div class="stat-label">Children</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="stat-item">
+                                <div class="stat-number">
+                                    {% set active_enrollments = 0 %}
+                                    {% for child in children %}
+                                        {% for enrollment in child.enrollments %}
+                                            {% if enrollment.status == 'active' %}
+                                                {% set active_enrollments = active_enrollments + 1 %}
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endfor %}
+                                    {{ active_enrollments }}
+                                </div>
+                                <div class="stat-label">Enrollments</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <!-- Left Panel - Center Cards -->
-        <div class="col-md-6" id="centersList">
-            <div class="content-wrapper">
-                <!-- Welcome Message -->
-                <div class="alert alert-info mb-4">
-                    <i class="bi bi-house-heart me-2"></i>
-                    <strong>Welcome, {{ session.user_name }}!</strong>
-                    {% if children %}
-                        You have {{ children|length }} child(ren) registered.
-                        <div class="mt-2">
-                            <a href="{{ url_for('manage_children') }}" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-people me-1"></i>Manage Children
-                            </a>
-                            <a href="{{ url_for('parent_enrollments') }}" class="btn btn-sm btn-outline-success">
-                                <i class="bi bi-journal-bookmark me-1"></i>View Enrollments
-                            </a>
-                        </div>
-                    {% else %}
-                        <div class="mt-2">
-                            <a href="{{ url_for('add_child') }}" class="btn btn-sm btn-primary">
-                                <i class="bi bi-person-plus me-1"></i>Add Your First Child
-                            </a>
-                        </div>
-                    {% endif %}
-                </div>
-
-                {% if children %}
-                <!-- Quick Children Overview -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0"><i class="bi bi-people-fill me-2"></i>Your Children</h5>
-                                <div class="dropdown">
-                                    <button class="btn btn-sm btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                        <i class="bi bi-plus-circle me-1"></i>Quick Actions
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="{{ url_for('add_child') }}">
-                                            <i class="bi bi-person-plus me-2"></i>Add Child
-                                        </a></li>
-                                        <li><a class="dropdown-item" href="{{ url_for('manage_children') }}">
-                                            <i class="bi bi-people me-2"></i>Manage All Children
-                                        </a></li>
-                                        <li><a class="dropdown-item" href="{{ url_for('parent_enrollments') }}">
-                                            <i class="bi bi-journal-bookmark me-2"></i>View All Enrollments
-                                        </a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <div class="row g-3">
-                                    {% for child in children[:4] %}
-                                    <div class="col-md-3">
-                                        <div class="card child-quick-card h-100 bg-light" onclick="selectChildForEnrollment({{ child.id }}, '{{ child.name }}')">
-                                            <div class="card-body text-center p-3">
-                                                {% if child.photo_url %}
-                                                <img src="{{ url_for('static', filename='uploads/' + child.photo_url) }}" 
-                                                    class="rounded-circle mb-2" style="width: 50px; height: 50px; object-fit: cover;">
-                                                {% else %}
-                                                <div class="bg-primary rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" 
-                                                    style="width: 50px; height: 50px;">
-                                                    <i class="bi bi-person text-white"></i>
-                                                </div>
-                                                {% endif %}
-                                                <h6 class="mb-1">{{ child.name }}</h6>
-                                                <small class="text-muted">{{ child.get_age_display() if child.calculate_age() else 'Age not set' }}</small>
-                                                <br>
-                                                <span class="badge bg-success mt-1">
-                                                    {{ child.enrollments|selectattr('status', 'equalto', 'active')|list|length }} Classes
-                                                </span>
-                                                <br>
-                                                <small class="text-muted mt-1">Click to enroll</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {% endfor %}
-                                    
-                                    {% if children|length > 4 %}
-                                    <div class="col-md-3">
-                                        <div class="card h-100 bg-light">
-                                            <div class="card-body text-center p-3 d-flex align-items-center justify-content-center">
-                                                <div>
-                                                    <h4 class="text-muted">+{{ children|length - 4 }}</h4>
-                                                    <small class="text-muted">More children</small>
-                                                    <br>
-                                                    <a href="{{ url_for('manage_children') }}" class="btn btn-sm btn-outline-primary mt-2">
-                                                        View All
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {% endif %}
-                                </div>
-                            </div>
+    <!-- Search and Filter Section -->
+    <div class="search-filters slide-in">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-gray-700">
+                            <i class="bi bi-search me-2"></i>Search Centers
+                        </label>
+                        <input type="text" class="form-control" id="searchInput" 
+                               placeholder="Search by name, description, or address..."
+                               onkeyup="filterCenters()">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-gray-700">
+                            <i class="bi bi-geo-alt me-2"></i>Your Location (Optional)
+                        </label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="userLocationInput" 
+                                   placeholder="Enter your address for distance calculation">
+                            <button class="btn btn-outline-primary" type="button" onclick="setUserLocation()">
+                                <i class="bi bi-crosshair"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
-                {% endif %}
                 
-                <!-- Center Cards -->
-                <div id="centersContainer">
-                {% if centers %}
-                    {% for center in centers %}
-                    <div class="card mb-3 center-card" 
-                         data-id="{{ center.id }}"
-                         data-name="{{ center.center_name|lower }}" 
-                         data-address="{{ center.address|lower }}"
-                         data-lat="{{ center.latitude or '' }}"
-                         data-lng="{{ center.longitude or '' }}">
-                        <div class="row g-0">
-                            <div class="col-md-4">
-                                <div class="bg-light d-flex align-items-center justify-content-center" style="height: 180px;">
-                                    {% if center.photo_url %}
-                                        <img src="{{ center.photo_url }}" class="img-fluid h-100 w-100 object-fit-cover" alt="{{ center.center_name }}">
-                                    {% else %}
-                                        <i class="bi bi-building display-4 text-muted"></i>
+                <div class="mt-4">
+                    <label class="form-label fw-semibold text-gray-700 mb-3">
+                        <i class="bi bi-funnel me-2"></i>Filter by Category
+                    </label>
+                    <div class="category-filter">
+                        <span class="category-chip active" data-category="" onclick="filterByCategory('')">
+                            <i class="bi bi-grid me-2"></i>All Categories
+                        </span>
+                        {% for category in categories %}
+                        <span class="category-chip" data-category="{{ category.id }}" 
+                              onclick="filterByCategory({{ category.id }})">
+                            <i class="{{ category.icon }} me-2"></i>{{ category.name }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <div class="d-flex flex-column align-items-lg-end">
+                    <div class="view-toggle mb-3">
+                        <button class="btn active" onclick="showListView()">
+                            <i class="bi bi-list me-1"></i>List
+                        </button>
+                        <button class="btn" onclick="showMapView()">
+                            <i class="bi bi-map me-1"></i>Map
+                        </button>
+                    </div>
+                    <div class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
+                        <i class="bi bi-info-circle me-1"></i>
+                        <span id="centersCount">{{ centers|length }}</span> centers found
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Panel - Center Cards -->
+        <div class="col-lg-6" id="centersList">
+            {% if children %}
+            <!-- Quick Children Overview -->
+            <div class="card border-0 shadow-soft mb-4 fade-in">
+                <div class="card-header bg-white border-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0">
+                            <i class="bi bi-people-fill me-2 text-primary"></i>Your Children
+                        </h5>
+                        <div class="dropdown">
+                            <button class="btn btn-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-plus-circle me-1"></i>Quick Actions
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-medium border-0 rounded-xl">
+                                <li><a class="dropdown-item rounded" href="{{ url_for('add_child') }}">
+                                    <i class="bi bi-person-plus me-2 text-primary"></i>Add Child
+                                </a></li>
+                                <li><a class="dropdown-item rounded" href="{{ url_for('manage_children') }}">
+                                    <i class="bi bi-people me-2 text-success"></i>Manage All Children
+                                </a></li>
+                                <li><a class="dropdown-item rounded" href="{{ url_for('parent_enrollments') }}">
+                                    <i class="bi bi-journal-bookmark me-2 text-info"></i>View All Enrollments
+                                </a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="children-grid">
+                        {% for child in children[:4] %}
+                        <div class="child-card" onclick="selectChildForEnrollment({{ child.id }}, '{{ child.name }}')">
+                            {% if child.photo_url %}
+                            <img src="{{ url_for('static', filename='uploads/' + child.photo_url) }}" 
+                                class="child-avatar" style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%;">
+                            {% else %}
+                            <div class="child-avatar">
+                                {{ child.name[0] }}
+                            </div>
+                            {% endif %}
+                            <h6 class="fw-bold mb-1">{{ child.name }}</h6>
+                            <p class="text-muted small mb-2">{{ child.get_age_display() if child.calculate_age() else 'Age not set' }}</p>
+                            <div class="badge bg-success bg-opacity-10 text-success mb-2">
+                                {{ child.enrollments|selectattr('status', 'equalto', 'active')|list|length }} Active Classes
+                            </div>
+                            <p class="text-muted small">Click to enroll in programs</p>
+                        </div>
+                        {% endfor %}
+                        
+                        {% if children|length > 4 %}
+                        <div class="child-card" style="background: var(--gray-50);">
+                            <div class="child-avatar" style="background: var(--gray-300); color: var(--gray-600);">
+                                <i class="bi bi-plus"></i>
+                            </div>
+                            <h6 class="fw-bold mb-1">+{{ children|length - 4 }} More</h6>
+                            <p class="text-muted small mb-2">Additional children</p>
+                            <a href="{{ url_for('manage_children') }}" class="btn btn-outline-primary btn-sm">
+                                View All
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Center Cards -->
+            <div id="centersContainer">
+            {% if centers %}
+                {% for center in centers %}
+                <div class="center-card mb-4 fade-in" 
+                     data-id="{{ center.id }}"
+                     data-name="{{ center.center_name|lower }}" 
+                     data-address="{{ center.address|lower }}"
+                     data-lat="{{ center.latitude or '' }}"
+                     data-lng="{{ center.longitude or '' }}">
+                    
+                    <div class="row g-0">
+                        <div class="col-md-4">
+                            {% if center.photo_url %}
+                                <img src="{{ center.photo_url }}" class="center-image" alt="{{ center.center_name }}">
+                            {% else %}
+                                <div class="center-image bg-gradient d-flex align-items-center justify-content-center">
+                                    <i class="bi bi-building display-4 text-primary"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card-body p-4">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <h5 class="fw-bold mb-1">{{ center.center_name }}</h5>
+                                        <p class="text-muted small mb-0">
+                                            <i class="bi bi-geo-alt me-1"></i>{{ center.address }}
+                                        </p>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="badge bg-primary bg-opacity-10 text-primary">
+                                            {{ center.programs|length }} Programs
+                                        </div>
+                                        <div class="distance-info" id="distance-{{ center.id }}"></div>
+                                    </div>
+                                </div>
+                                
+                                <p class="text-muted mb-3">{{ center.description or "Quality education programs for children and teenagers." }}</p>
+                                
+                                <!-- Program Preview -->
+                                {% if center.programs %}
+                                <div class="mb-3">
+                                    <h6 class="small fw-bold text-gray-700 mb-2">Featured Programs:</h6>
+                                    <div class="d-flex flex-wrap">
+                                        {% for program in center.programs[:3] %}
+                                        <span class="program-badge" 
+                                              style="background-color: {{ program.category.color }}15; color: {{ program.category.color }}; border: 1px solid {{ program.category.color }}30;"
+                                              onclick="showProgramModal({{ program.id }}, {{ center.id }})">
+                                            <i class="{{ program.category.icon }} me-1"></i>{{ program.name }}
+                                        </span>
+                                        {% endfor %}
+                                        {% if center.programs|length > 3 %}
+                                        <span class="program-badge" style="background: var(--gray-100); color: var(--gray-600);">
+                                            +{{ center.programs|length - 3 }} more
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                                
+                                <!-- Contact Info -->
+                                <div class="d-flex align-items-center text-muted small mb-3">
+                                    {% if center.user.phone %}
+                                    <div class="me-3">
+                                        <i class="bi bi-telephone me-1"></i>{{ center.user.phone }}
+                                    </div>
+                                    {% endif %}
+                                    {% if center.user.email %}
+                                    <div>
+                                        <i class="bi bi-envelope me-1"></i>{{ center.user.email }}
+                                    </div>
                                     {% endif %}
                                 </div>
-                            </div>
-                            <div class="col-md-8">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <h5 class="card-title mb-0">{{ center.center_name }}</h5>
-                                        <div class="text-end">
-                                            <span class="badge bg-primary">{{ center.programs|length }} Programs</span>
-                                            <div class="distance-info" id="distance-{{ center.id }}"></div>
-                                        </div>
+                                
+                                <!-- Action Buttons -->
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="btn-group">
+                                        <a href="{{ url_for('view_center', center_id=center.id) }}" class="btn btn-outline-primary btn-sm">
+                                            <i class="bi bi-eye me-1"></i>View Details
+                                        </a>
+                                        {% if center.latitude and center.longitude %}
+                                        <button class="btn btn-outline-secondary btn-sm" onclick="focusOnCenter({{ center.latitude }}, {{ center.longitude }})">
+                                            <i class="bi bi-geo-alt"></i>
+                                        </button>
+                                        {% endif %}
+                                        {% if children %}
+                                        <button class="btn btn-primary btn-sm" onclick="showCenterPrograms({{ center.id }}, '{{ center.center_name }}')">
+                                            <i class="bi bi-plus-circle me-1"></i>Enroll
+                                        </button>
+                                        {% endif %}
                                     </div>
-                                    <p class="card-text">{{ center.description or "Quality education programs for children and teenagers." }}</p>
-                                    
-                                    <!-- Program Preview -->
-                                    {% if center.programs %}
-                                    <div class="mb-2">
-                                        <small class="text-muted fw-bold">Featured Programs:</small>
-                                        <div class="d-flex flex-wrap gap-1 mt-1">
-                                            {% for program in center.programs[:3] %}
-                                            <span class="badge program-badge" 
-                                                  style="background-color: {{ program.category.color }}20; color: {{ program.category.color }}"
-                                                  onclick="showProgramModal({{ program.id }}, {{ center.id }})">
-                                                <i class="{{ program.category.icon }} me-1"></i>{{ program.name }}
-                                            </span>
-                                            {% endfor %}
-                                            {% if center.programs|length > 3 %}
-                                            <span class="badge bg-light text-dark">+{{ center.programs|length - 3 }} more</span>
-                                            {% endif %}
+                                    <div class="d-flex gap-2">
+                                        <div class="badge bg-success bg-opacity-10 text-success">
+                                            <i class="bi bi-people me-1"></i>{{ center.teachers|length }} Teachers
                                         </div>
-                                    </div>
-                                    {% endif %}
-                                    
-                                    <p class="card-text">
-                                        <small class="text-muted">
-                                            <i class="bi bi-geo-alt me-1"></i>{{ center.address }}
-                                            {% if center.user.phone %}
-                                                <br><i class="bi bi-telephone me-1"></i>{{ center.user.phone }}
-                                            {% endif %}
-                                        </small>
-                                    </p>
-                                    
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div class="btn-group">
-                                            <a href="{{ url_for('view_center', center_id=center.id) }}" class="btn btn-primary btn-sm">
-                                                View Details
-                                            </a>
-                                            {% if center.latitude and center.longitude %}
-                                            <button class="btn btn-outline-primary btn-sm" onclick="focusOnCenter({{ center.latitude }}, {{ center.longitude }})">
-                                                <i class="bi bi-geo-alt"></i>
-                                            </button>
-                                            {% endif %}
-                                            {% if children %}
-                                            <button class="btn btn-success btn-sm" onclick="showCenterPrograms({{ center.id }}, '{{ center.center_name }}')">
-                                                <i class="bi bi-plus-circle"></i> Enroll
-                                            </button>
-                                            {% endif %}
-                                        </div>
-                                        <div>
-                                            <span class="badge bg-success me-1">{{ center.teachers|length }} Teachers</span>
-                                            {% if center.programs %}
-                                                <span class="badge bg-info">{{ center.programs|length }} Programs</span>
-                                            {% endif %}
+                                        <div class="badge bg-info bg-opacity-10 text-info">
+                                            <i class="bi bi-star me-1"></i>4.8 Rating
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    {% endfor %}
-                {% else %}
-                    <div class="alert alert-warning">
-                        <i class="bi bi-exclamation-triangle me-2"></i>
-                        No education centers registered yet. New centers will appear here once they join the platform.
-                    </div>
-                {% endif %}
                 </div>
+                {% endfor %}
+            {% else %}
+                <div class="card border-0 shadow-soft text-center p-5">
+                    <i class="bi bi-search display-1 text-muted mb-3"></i>
+                    <h4 class="fw-bold text-gray-800 mb-2">No Centers Found</h4>
+                    <p class="text-muted">No education centers match your current filters. Try adjusting your search criteria.</p>
+                </div>
+            {% endif %}
             </div>
         </div>
         
         <!-- Right Panel - Interactive Map -->
-        <div class="col-md-6" id="mapPanel">
-            <div class="content-wrapper">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">
-                            <i class="bi bi-geo-alt-fill me-2"></i>Education Centers in Astana
-                        </h5>
-                    </div>
-                    <div class="card-body p-0">
-                        <div id="map"></div>
-                    </div>
-                    <div class="card-footer bg-light">
-                        <div class="row text-center">
-                            <div class="col-4">
-                                <div class="fw-bold text-primary">{{ map_centers|length }}</div>
-                                <small class="text-muted">Centers on Map</small>
-                            </div>
-                            <div class="col-4">
-                                <div class="fw-bold text-success">{{ children|length }}</div>
-                                <small class="text-muted">Your Children</small>
-                            </div>
-                            <div class="col-4">
-                                <div class="fw-bold text-info" id="selectedCategory">All</div>
-                                <small class="text-muted">Category Filter</small>
-                            </div>
+        <div class="col-lg-6" id="mapPanel">
+            <div class="card border-0 shadow-soft fade-in">
+                <div class="card-header bg-white border-0">
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-geo-alt-fill me-2 text-primary"></i>Education Centers in Astana
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div id="map"></div>
+                </div>
+                <div class="card-footer bg-gray-50 border-0">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="fw-bold text-primary">{{ map_centers|length }}</div>
+                            <small class="text-muted">Centers on Map</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="fw-bold text-success">{{ children|length }}</div>
+                            <small class="text-muted">Your Children</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="fw-bold text-info" id="selectedCategory">All</div>
+                            <small class="text-muted">Category Filter</small>
                         </div>
                     </div>
                 </div>
@@ -384,33 +680,35 @@
 <!-- Enhanced Enrollment Modal -->
 <div class="modal fade" id="enrollmentModal" tabindex="-1">
     <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
+        <div class="modal-content border-0 rounded-xl">
+            <div class="modal-header border-0 bg-primary text-white rounded-top">
+                <h5 class="modal-title fw-bold">
                     <i class="bi bi-journal-plus me-2"></i>Enroll Child in Program
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body p-4">
                 <!-- Child Selection -->
                 <div id="childSelectionSection" class="mb-4">
-                    <h6>Select Child:</h6>
+                    <h6 class="fw-bold text-gray-700 mb-3">
+                        <i class="bi bi-person me-2"></i>Select Child:
+                    </h6>
                     <div class="row g-3" id="childSelection">
                         {% for child in children %}
                         <div class="col-md-3">
-                            <div class="card child-select-card" data-child-id="{{ child.id }}" onclick="selectChild({{ child.id }}, '{{ child.name }}')">
+                            <div class="card child-select-card border-2" data-child-id="{{ child.id }}" onclick="selectChild({{ child.id }}, '{{ child.name }}')">
                                 <div class="card-body text-center p-3">
                                     {% if child.photo_url %}
                                     <img src="{{ url_for('static', filename='uploads/' + child.photo_url) }}" 
-                                         class="rounded-circle mb-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                         class="rounded-circle mb-2" style="width: 50px; height: 50px; object-fit: cover;">
                                     {% else %}
                                     <div class="bg-primary rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" 
-                                         style="width: 40px; height: 40px;">
-                                        <i class="bi bi-person text-white"></i>
+                                         style="width: 50px; height: 50px;">
+                                        <span class="text-white fw-bold">{{ child.name[0] }}</span>
                                     </div>
                                     {% endif %}
-                                    <small class="fw-bold">{{ child.name }}</small>
-                                    <br><small class="text-muted">{{ child.get_age_display() }}</small>
+                                    <h6 class="fw-bold mb-1">{{ child.name }}</h6>
+                                    <small class="text-muted">{{ child.get_age_display() }}</small>
                                 </div>
                             </div>
                         </div>
@@ -420,7 +718,9 @@
                 
                 <!-- Program Selection -->
                 <div id="programSelectionSection" style="display: none;">
-                    <h6>Available Programs for <span id="selectedChildName"></span>:</h6>
+                    <h6 class="fw-bold text-gray-700 mb-3">
+                        <i class="bi bi-mortarboard me-2"></i>Available Programs for <span id="selectedChildName" class="text-primary"></span>:
+                    </h6>
                     <div id="programsContainer">
                         <!-- Programs will be loaded here -->
                     </div>
@@ -433,9 +733,9 @@
 <!-- Program Quick View Modal -->
 <div class="modal fade" id="programModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="programModalTitle"></h5>
+        <div class="modal-content border-0 rounded-xl">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold" id="programModalTitle"></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="programModalBody">
@@ -467,7 +767,7 @@ function initializeMap() {
     // Create map centered on Astana
     map = L.map('map').setView([51.1605, 71.4704], 11);
     
-    // Add tile layer
+    // Add modern tile layer
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 18,
         attribution: '© OpenStreetMap contributors'
@@ -490,7 +790,7 @@ function loadCentersData() {
         });
 }
 
-// Update map markers
+// Update map markers with modern styling
 function updateMapMarkers() {
     // Clear existing markers
     markers.forEach(marker => map.removeLayer(marker));
@@ -510,18 +810,18 @@ function updateMapMarkers() {
         const marker = L.marker([center.latitude, center.longitude])
             .addTo(map);
         
-        // Create popup content
+        // Create modern popup content
         const popupContent = `
             <div class="map-popup">
-                <h6>${center.name}</h6>
-                <p class="small mb-2">${center.description || 'Quality education center'}</p>
-                <p class="small mb-2">
+                <h6 class="fw-bold text-primary">${center.name}</h6>
+                <p class="small mb-2 text-muted">${center.description || 'Quality education center'}</p>
+                <p class="small mb-2 text-muted">
                     <i class="bi bi-geo-alt me-1"></i>${center.address}
                 </p>
-                <div class="mb-2">
+                <div class="mb-3">
                     ${center.programs.slice(0, 2).map(program => 
-                        `<span class="badge me-1" style="background-color: ${program.category_color}20; color: ${program.category_color}">
-                            ${program.name}
+                        `<span class="badge me-1" style="background-color: ${program.category_color}20; color: ${program.category_color}; border: 1px solid ${program.category_color}30;">
+                            <i class="${program.category_icon} me-1"></i>${program.name}
                         </span>`
                     ).join('')}
                 </div>
@@ -530,9 +830,9 @@ function updateMapMarkers() {
                         ${center.programs_count} Programs • ${center.teachers_count} Teachers
                     </small>
                     <div class="btn-group btn-group-sm">
-                        <a href="/center/${center.id}" class="btn btn-primary btn-sm">View</a>
+                        <a href="/center/${center.id}" class="btn btn-outline-primary btn-sm">View</a>
                         {% if children %}
-                        <button class="btn btn-success btn-sm" onclick="showCenterPrograms(${center.id}, '${center.name}')">Enroll</button>
+                        <button class="btn btn-primary btn-sm" onclick="showCenterPrograms(${center.id}, '${center.name}')">Enroll</button>
                         {% endif %}
                     </div>
                 </div>
@@ -557,25 +857,32 @@ function showEnrollmentModal() {
     {% if children %}
     new bootstrap.Modal(document.getElementById('enrollmentModal')).show();
     {% else %}
-    alert('Please add children to your family first before enrolling in programs.');
-    window.location.href = '{{ url_for('add_child') }}';
+    // Show elegant notification
+    showNotification('Please add children to your family first before enrolling in programs.', 'info');
+    setTimeout(() => {
+        window.location.href = '{{ url_for('add_child') }}';
+    }, 2000);
     {% endif %}
 }
 
 function selectChild(childId, childName) {
-    // Highlight selected child
+    // Highlight selected child with modern styling
     document.querySelectorAll('.child-select-card').forEach(card => {
         card.classList.remove('border-primary', 'bg-primary', 'text-white');
+        card.classList.add('border-gray-200');
     });
     
     const selectedCard = document.querySelector(`[data-child-id="${childId}"]`);
+    selectedCard.classList.remove('border-gray-200');
     selectedCard.classList.add('border-primary', 'bg-primary', 'text-white');
     
     selectedChild = { id: childId, name: childName };
     document.getElementById('selectedChildName').textContent = childName;
     
-    // Show program selection
-    document.getElementById('programSelectionSection').style.display = 'block';
+    // Show program selection with animation
+    const programSection = document.getElementById('programSelectionSection');
+    programSection.style.display = 'block';
+    programSection.classList.add('fade-in');
     
     // Load available programs
     loadAvailablePrograms(childId);
@@ -583,57 +890,63 @@ function selectChild(childId, childName) {
 
 function loadAvailablePrograms(childId) {
     const container = document.getElementById('programsContainer');
-    container.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
+    container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-muted">Loading amazing programs...</p></div>';
     
     fetch(`/api/child/${childId}/available-programs`)
         .then(response => response.json())
         .then(data => {
             if (data.programs && data.programs.length > 0) {
-                let html = '<div class="row g-3">';
+                let html = '<div class="row g-4">';
                 data.programs.forEach(program => {
                     html += `
                         <div class="col-md-6">
-                            <div class="card program-card h-100">
-                                <div class="card-body">
+                            <div class="card program-card h-100 border-0 shadow-soft">
+                                <div class="card-body p-4">
                                     <div class="d-flex align-items-center mb-3">
-                                        <i class="${program.category_icon} display-6 me-3" style="color: ${program.category_color}"></i>
+                                        <div class="bg-${getProgramColorClass(program.category_color)} rounded-circle p-3 me-3">
+                                            <i class="${program.category_icon} text-white"></i>
+                                        </div>
                                         <div>
-                                            <h6 class="mb-1">${program.name}</h6>
+                                            <h6 class="fw-bold mb-1">${program.name}</h6>
                                             <small class="text-muted">${program.center_name}</small>
                                         </div>
                                     </div>
                                     
-                                    ${program.short_description ? `<p class="small text-muted">${program.short_description}</p>` : ''}
+                                    ${program.short_description ? `<p class="text-muted small mb-3">${program.short_description}</p>` : ''}
                                     
-                                    <div class="mb-3">
-                                        <div class="row g-2 text-center">
-                                            <div class="col-6">
-                                                <small class="text-muted">
-                                                    <i class="bi bi-people me-1"></i>${program.age_range}
-                                                </small>
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-6">
+                                            <div class="bg-gray-50 rounded p-2 text-center">
+                                                <i class="bi bi-people text-muted"></i>
+                                                <div class="small fw-semibold">${program.age_range}</div>
                                             </div>
-                                            <div class="col-6">
-                                                <small class="text-muted">
-                                                    <i class="bi bi-currency-dollar me-1"></i>${program.price_display}
-                                                </small>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="bg-gray-50 rounded p-2 text-center">
+                                                <i class="bi bi-currency-dollar text-muted"></i>
+                                                <div class="small fw-semibold">${program.price_display}</div>
                                             </div>
                                         </div>
                                     </div>
                                     
                                     <div class="mb-3">
-                                        <small class="text-muted fw-bold">Available Times:</small>
+                                        <h6 class="small fw-bold text-gray-700 mb-2">Available Times:</h6>
                                         ${program.schedules.map(schedule => 
-                                            `<div class="schedule-option mt-2">
-                                                <div class="d-flex justify-content-between align-items-center p-2 bg-light rounded">
+                                            `<div class="schedule-option mb-2">
+                                                <div class="d-flex justify-content-between align-items-center p-3 bg-gray-50 rounded-xl border">
                                                     <div>
-                                                        <strong>${schedule.day_name}</strong> ${schedule.time_range}
-                                                        <br><small class="text-muted">${schedule.teacher_name}</small>
-                                                        ${schedule.room_name ? `<br><small class="text-muted">${schedule.room_name}</small>` : ''}
+                                                        <div class="fw-semibold">${schedule.day_name} ${schedule.time_range}</div>
+                                                        <small class="text-muted">
+                                                            <i class="bi bi-person me-1"></i>${schedule.teacher_name}
+                                                            ${schedule.room_name ? `<br><i class="bi bi-geo-alt me-1"></i>${schedule.room_name}` : ''}
+                                                        </small>
                                                     </div>
                                                     <div class="text-end">
-                                                        <small class="text-muted">${schedule.available_spots}/${schedule.max_students} spots</small>
-                                                        <br><button class="btn btn-sm btn-primary" onclick="enrollInSchedule(${childId}, ${schedule.id}, '${program.name}', '${schedule.day_name} ${schedule.time_range}')">
-                                                            Enroll
+                                                        <div class="badge bg-success bg-opacity-10 text-success mb-1">
+                                                            ${schedule.available_spots}/${schedule.max_students} spots
+                                                        </div>
+                                                        <br><button class="btn btn-primary btn-sm" onclick="enrollInSchedule(${childId}, ${schedule.id}, '${program.name}', '${schedule.day_name} ${schedule.time_range}')">
+                                                            <i class="bi bi-check-circle me-1"></i>Enroll
                                                         </button>
                                                     </div>
                                                 </div>
@@ -649,17 +962,18 @@ function loadAvailablePrograms(childId) {
                 container.innerHTML = html;
             } else {
                 container.innerHTML = `
-                    <div class="text-center py-4">
+                    <div class="text-center py-5">
                         <i class="bi bi-info-circle display-4 text-muted mb-3"></i>
-                        <h5>No Available Programs</h5>
+                        <h5 class="fw-bold">No Available Programs</h5>
                         <p class="text-muted">No programs are currently available for this child that match their age or aren't already enrolled.</p>
+                        <a href="{{ url_for('parent_dashboard') }}" class="btn btn-outline-primary rounded-pill">Browse All Centers</a>
                     </div>
                 `;
             }
         })
         .catch(error => {
             container.innerHTML = `
-                <div class="alert alert-danger">
+                <div class="alert alert-danger border-0 rounded-xl">
                     <i class="bi bi-exclamation-triangle me-2"></i>
                     Error loading programs. Please try again.
                 </div>
@@ -669,6 +983,12 @@ function loadAvailablePrograms(childId) {
 
 function enrollInSchedule(childId, scheduleId, programName, scheduleInfo) {
     if (confirm(`Enroll ${selectedChild.name} in ${programName} (${scheduleInfo})?`)) {
+        // Show loading state
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-arrow-clockwise spin me-1"></i>Enrolling...';
+        btn.disabled = true;
+        
         fetch('/api/enroll', {
             method: 'POST',
             headers: {
@@ -682,54 +1002,61 @@ function enrollInSchedule(childId, scheduleId, programName, scheduleInfo) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert(data.message);
+                showNotification(data.message, 'success');
                 bootstrap.Modal.getInstance(document.getElementById('enrollmentModal')).hide();
                 // Refresh the page to show updated enrollment
                 setTimeout(() => location.reload(), 1500);
             } else {
-                alert(data.error);
+                showNotification(data.error, 'error');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
             }
         })
         .catch(error => {
-            alert('Error processing enrollment. Please try again.');
+            showNotification('Error processing enrollment. Please try again.', 'error');
+            btn.innerHTML = originalText;
+            btn.disabled = false;
         });
     }
 }
 
-function showCenterPrograms(centerId, centerName) {
-    {% if children %}
-    // If only one child, select automatically
-    {% if children|length == 1 %}
-    selectedChild = { id: {{ children[0].id }}, name: '{{ children[0].name }}' };
-    document.getElementById('selectedChildName').textContent = '{{ children[0].name }}';
-    document.getElementById('childSelectionSection').style.display = 'none';
-    document.getElementById('programSelectionSection').style.display = 'block';
-    loadAvailablePrograms({{ children[0].id }});
-    {% endif %}
+// Helper functions
+function getProgramColorClass(hexColor) {
+    // Convert hex color to appropriate Bootstrap class
+    const colorMap = {
+        '#3b82f6': 'primary',
+        '#10b981': 'success',
+        '#f59e0b': 'warning',
+        '#ef4444': 'danger',
+        '#06b6d4': 'info'
+    };
+    return colorMap[hexColor] || 'primary';
+}
+
+function showNotification(message, type) {
+    const alertClass = type === 'error' ? 'danger' : type;
+    const iconClass = type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-triangle' : 'info-circle';
     
-    showEnrollmentModal();
-    {% else %}
-    alert('Please add children to your family first.');
-    window.location.href = '{{ url_for('add_child') }}';
-    {% endif %}
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${alertClass} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
+    alert.style.zIndex = '9999';
+    alert.innerHTML = `
+        <i class="bi bi-${iconClass} me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alert);
+    
+    // Auto dismiss after 5 seconds
+    setTimeout(() => {
+        if (alert.parentNode) {
+            alert.remove();
+        }
+    }, 5000);
 }
 
-function showProgramModal(programId, centerId) {
-    fetch(`/api/program/${programId}/details`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById('programModalTitle').textContent = data.program.name;
-                document.getElementById('programModalBody').innerHTML = data.html;
-                new bootstrap.Modal(document.getElementById('programModal')).show();
-            }
-        })
-        .catch(error => {
-            console.error('Error loading program details:', error);
-        });
-}
-
-// Filter functions (keep existing ones)
+// Filter functions
 function filterCenters() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const centerCards = document.querySelectorAll('.center-card');
@@ -751,7 +1078,7 @@ function filterCenters() {
 function filterByCategory(categoryId) {
     selectedCategory = categoryId;
     
-    // Update UI
+    // Update UI with modern styling
     document.querySelectorAll('.category-chip').forEach(chip => {
         chip.classList.remove('active');
     });
@@ -771,6 +1098,11 @@ function setUserLocation() {
     const address = document.getElementById('userLocationInput').value;
     if (!address) return;
     
+    // Show loading state
+    const button = event.target;
+    button.innerHTML = '<i class="bi bi-arrow-clockwise spin"></i>';
+    button.disabled = true;
+    
     fetch(`/api/geocode?address=${encodeURIComponent(address)}`)
         .then(response => response.json())
         .then(data => {
@@ -782,7 +1114,7 @@ function setUserLocation() {
                     map.removeLayer(userMarker);
                 }
                 
-                // Add user location marker
+                // Add modern user location marker
                 userMarker = L.marker(userLocation, {
                     icon: L.icon({
                         iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
@@ -794,20 +1126,26 @@ function setUserLocation() {
                     })
                 }).addTo(map);
                 
-                userMarker.bindPopup('<b>Your Location</b>').openPopup();
+                userMarker.bindPopup('<div class="text-center"><b>Your Location</b><br><small class="text-muted">Distance calculations are based from here</small></div>').openPopup();
                 
                 // Update distances
                 updateDistances();
                 
                 // Focus map on user location
                 map.setView(userLocation, 13);
+                
+                showNotification('Location set successfully!', 'success');
             } else {
-                alert('Could not find the address. Please try a more specific address in Astana.');
+                showNotification('Could not find the address. Please try a more specific address in Astana.', 'error');
             }
         })
         .catch(error => {
             console.error('Geocoding error:', error);
-            alert('Error finding location. Please try again.');
+            showNotification('Error finding location. Please try again.', 'error');
+        })
+        .finally(() => {
+            button.innerHTML = '<i class="bi bi-crosshair"></i>';
+            button.disabled = false;
         });
 }
 
@@ -820,7 +1158,7 @@ function updateDistances() {
             fetch(`/api/distance?lat1=${userLocation[0]}&lon1=${userLocation[1]}&lat2=${center.latitude}&lon2=${center.longitude}`)
                 .then(response => response.json())
                 .then(data => {
-                    distanceElement.innerHTML = `<i class="bi bi-geo me-1"></i>${data.distance_text}`;
+                    distanceElement.innerHTML = `<i class="bi bi-geo me-1 text-primary"></i>${data.distance_text}`;
                 })
                 .catch(error => console.error('Distance calculation error:', error));
         }
@@ -842,11 +1180,19 @@ function focusOnCenter(lat, lng) {
 function showListView() {
     document.getElementById('centersList').classList.remove('d-none');
     document.getElementById('mapPanel').classList.add('d-none');
+    
+    // Update button states
+    document.querySelectorAll('.view-toggle .btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
 }
 
 function showMapView() {
     document.getElementById('centersList').classList.add('d-none');
     document.getElementById('mapPanel').classList.remove('d-none');
+    
+    // Update button states
+    document.querySelectorAll('.view-toggle .btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
     
     // Refresh map size
     setTimeout(() => {
@@ -854,9 +1200,62 @@ function showMapView() {
     }, 100);
 }
 
+function showCenterPrograms(centerId, centerName) {
+    {% if children %}
+    // If only one child, select automatically
+    {% if children|length == 1 %}
+    selectedChild = { id: {{ children[0].id }}, name: '{{ children[0].name }}' };
+    document.getElementById('selectedChildName').textContent = '{{ children[0].name }}';
+    document.getElementById('childSelectionSection').style.display = 'none';
+    document.getElementById('programSelectionSection').style.display = 'block';
+    loadAvailablePrograms({{ children[0].id }});
+    {% endif %}
+    
+    showEnrollmentModal();
+    {% else %}
+    showNotification('Please add children to your family first.', 'info');
+    setTimeout(() => {
+        window.location.href = '{{ url_for('add_child') }}';
+    }, 2000);
+    {% endif %}
+}
+
+function showProgramModal(programId, centerId) {
+    fetch(`/api/program/${programId}/details`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('programModalTitle').textContent = data.program.name;
+                document.getElementById('programModalBody').innerHTML = data.html;
+                new bootstrap.Modal(document.getElementById('programModal')).show();
+            }
+        })
+        .catch(error => {
+            console.error('Error loading program details:', error);
+        });
+}
+
 // Initialize map when page loads
 document.addEventListener('DOMContentLoaded', function() {
     initializeMap();
+    
+    // Add smooth animations to elements as they come into view
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('fade-in');
+            }
+        });
+    }, observerOptions);
+    
+    document.querySelectorAll('.center-card, .child-card').forEach(el => {
+        observer.observe(el);
+    });
     
     // Check for URL parameters (e.g., from program detail page)
     const urlParams = new URLSearchParams(window.location.search);
@@ -868,35 +1267,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 1000);
     }
 });
+
+// Add spinning animation for loading states
+const style = document.createElement('style');
+style.textContent = `
+    .spin {
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+`;
+document.head.appendChild(style);
 </script>
-
-<style>
-.child-select-card {
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-    border: 2px solid transparent;
-}
-
-.child-select-card:hover {
-    border-color: var(--primary-color);
-    transform: translateY(-2px);
-}
-
-.program-badge {
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-}
-
-.program-badge:hover {
-    transform: scale(1.05);
-}
-
-.schedule-option {
-    transition: all 0.2s ease-in-out;
-}
-
-.schedule-option:hover {
-    background-color: rgba(79, 70, 229, 0.05) !important;
-}
-</style>
 {% endblock %}
