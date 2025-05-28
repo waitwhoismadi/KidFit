@@ -5,17 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}SamgauKids - Education Platform{% endblock %}</title>
     
-    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Modern CSS -->
     <style>
         :root {
-            /* Modern Blue Color Palette */
             --primary-50: #eff6ff;
             --primary-100: #dbeafe;
             --primary-200: #bfdbfe;
@@ -27,13 +22,11 @@
             --primary-800: #1e40af;
             --primary-900: #1e3a8a;
             
-            /* Supporting Colors */
             --secondary-500: #06b6d4;
             --success-500: #10b981;
             --warning-500: #f59e0b;
             --danger-500: #ef4444;
             
-            /* Neutral Colors */
             --gray-50: #f9fafb;
             --gray-100: #f3f4f6;
             --gray-200: #e5e7eb;
@@ -45,7 +38,6 @@
             --gray-800: #1f2937;
             --gray-900: #111827;
             
-            /* Semantic Colors */
             --primary-color: var(--primary-600);
             --secondary-color: var(--secondary-500);
             --success-color: var(--success-500);
@@ -69,7 +61,6 @@
             font-weight: 400;
         }
         
-        /* Modern Navbar */
         .navbar {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
@@ -105,7 +96,6 @@
             background-color: var(--primary-50);
         }
         
-        /* Modern Buttons */
         .btn {
             font-weight: 500;
             border-radius: 0.75rem;
@@ -181,7 +171,6 @@
             border-radius: 0.5rem;
         }
         
-        /* Modern Cards */
         .card {
             border: none;
             border-radius: 1rem;
@@ -214,7 +203,6 @@
             padding: 1rem 1.5rem;
         }
         
-        /* Modern Sidebar */
         .sidebar {
             background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-800) 100%);
             min-height: calc(100vh - 76px);
@@ -243,7 +231,6 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         
-        /* Modern Hero Section */
         .hero-section {
             background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-800) 100%);
             color: white;
@@ -267,7 +254,6 @@
             z-index: 1;
         }
         
-        /* Modern Forms */
         .form-control {
             border: 2px solid var(--gray-200);
             border-radius: 0.75rem;
@@ -301,7 +287,6 @@
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
         
-        /* Modern Alerts */
         .alert {
             border: none;
             border-radius: 1rem;
@@ -333,7 +318,6 @@
             color: var(--primary-800);
         }
         
-        /* Modern Badges */
         .badge {
             font-weight: 500;
             padding: 0.5rem 0.75rem;
@@ -353,7 +337,6 @@
             background: var(--warning-500) !important;
         }
         
-        /* Modern Tables */
         .table {
             border-radius: 0.75rem;
             overflow: hidden;
@@ -382,7 +365,6 @@
             background-color: var(--gray-50);
         }
         
-        /* Modern Utilities */
         .content-wrapper {
             padding: 2rem;
         }
@@ -407,7 +389,6 @@
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
         }
         
-        /* Modern Footer */
         .footer {
             background: var(--gray-900);
             color: var(--gray-300);
@@ -415,7 +396,6 @@
             margin-top: 4rem;
         }
         
-        /* Program Cards */
         .program-badge {
             font-size: 0.75rem;
             padding: 0.25rem 0.75rem;
@@ -453,7 +433,6 @@
             transform: translateY(-2px);
         }
         
-        /* Stats Cards */
         .stats-card {
             background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-800) 100%);
             color: white;
@@ -461,7 +440,6 @@
             border-radius: 1rem;
         }
         
-        /* Animations */
         .pulse {
             animation: pulse 2s infinite;
         }
@@ -481,7 +459,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
-        /* Responsive Design */
         @media (max-width: 768px) {
             .content-wrapper {
                 padding: 1rem;
@@ -504,7 +481,6 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <!-- Modern Navigation -->
     <nav class="navbar navbar-expand-lg">
         <div class="container">
             <a class="navbar-brand" href="{{ url_for('index') }}">
@@ -550,7 +526,6 @@
         </div>
     </nav>
 
-    <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             <div class="container mt-3">
@@ -565,12 +540,10 @@
         {% endif %}
     {% endwith %}
 
-    <!-- Main Content -->
     <main>
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Modern Footer -->
     <footer class="footer">
         <div class="container">
             <div class="row">
@@ -602,7 +575,6 @@
         </div>
     </footer>
 
-    <!-- Bootstrap 5 JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     {% block extra_js %}{% endblock %}

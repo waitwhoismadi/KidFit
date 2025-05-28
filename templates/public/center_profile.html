@@ -3,7 +3,6 @@
 {% block title %}{{ center.center_name }} - {{ super() }}{% endblock %}
 
 {% block extra_css %}
-<!-- Leaflet CSS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
      crossorigin=""/>
@@ -53,7 +52,6 @@
 {% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
 <div class="hero-section">
     <div class="container">
         <div class="row align-items-center">
@@ -97,9 +95,7 @@
 
 <div class="container">
     <div class="row g-4">
-        <!-- Main Content -->
         <div class="col-lg-8">
-            <!-- Programs Section -->
             <div class="card mb-4">
                 <div class="card-header">
                     <h4 class="mb-0">
@@ -191,7 +187,6 @@
                 </div>
             </div>
             
-            <!-- Teachers Section -->
             <div class="card mb-4">
                 <div class="card-header">
                     <h4 class="mb-0">
@@ -231,9 +226,7 @@
             </div>
         </div>
         
-        <!-- Sidebar -->
         <div class="col-lg-4">
-            <!-- Contact Information -->
             <div class="card contact-card mb-4">
                 <div class="card-body">
                     <h5 class="card-title">
@@ -280,7 +273,6 @@
                 </div>
             </div>
             
-            <!-- Location Map -->
             {% if center.latitude and center.longitude %}
             <div class="card mb-4">
                 <div class="card-body">
@@ -298,7 +290,6 @@
             </div>
             {% endif %}
             
-            <!-- Quick Stats -->
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">
@@ -350,14 +341,12 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- Leaflet JavaScript -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
      crossorigin=""></script>
 
 <script>
 {% if center.latitude and center.longitude %}
-// Initialize center location map
 const centerMap = L.map('centerMap').setView([{{ center.latitude }}, {{ center.longitude }}], 15);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -365,7 +354,6 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors'
 }).addTo(centerMap);
 
-// Add center marker
 const centerMarker = L.marker([{{ center.latitude }}, {{ center.longitude }}])
     .addTo(centerMap)
     .bindPopup(`
@@ -377,7 +365,6 @@ const centerMarker = L.marker([{{ center.latitude }}, {{ center.longitude }}])
 {% endif %}
 
 function enrollInProgram(programId) {
-    // This will be implemented in Phase 6
     alert('Enrollment system coming in Phase 6! For now, please contact the center directly.');
 }
 </script>

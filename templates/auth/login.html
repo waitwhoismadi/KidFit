@@ -9,7 +9,6 @@
             <div class="col-md-6 col-lg-5 col-xl-4">
                 <div class="card border-0 shadow-large rounded-3xl">
                     <div class="card-body p-5">
-                        <!-- Header -->
                         <div class="text-center mb-5">
                             <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" 
                                  style="width: 80px; height: 80px;">
@@ -19,7 +18,6 @@
                             <p class="text-muted">Sign in to your SamgauKids account</p>
                         </div>
                         
-                        <!-- Login Form -->
                         <form method="POST" class="needs-validation" novalidate>
                             <div class="mb-4">
                                 <label for="email" class="form-label">Email Address</label>
@@ -56,7 +54,6 @@
                                 </div>
                             </div>
                             
-                            <!-- Remember Me & Forgot Password -->
                             <div class="d-flex justify-content-between align-items-center mb-4">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="remember" name="remember">
@@ -69,14 +66,12 @@
                                 </a>
                             </div>
                             
-                            <!-- Submit Button -->
                             <button type="submit" class="btn btn-primary w-100 py-3 mb-4 fw-medium">
                                 <i class="bi bi-box-arrow-in-right me-2"></i>
                                 Sign In
                             </button>
                         </form>
                         
-                        <!-- Divider -->
                         <div class="position-relative text-center mb-4">
                             <hr class="border-gray-200">
                             <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 text-muted small">
@@ -84,7 +79,6 @@
                             </span>
                         </div>
                         
-                        <!-- Social Login Options -->
                         <div class="row g-2 mb-4">
                             <div class="col-6">
                                 <button type="button" class="btn btn-outline-secondary w-100 py-2">
@@ -100,7 +94,6 @@
                             </div>
                         </div>
                         
-                        <!-- Sign Up Link -->
                         <div class="text-center">
                             <p class="text-muted mb-0">
                                 Don't have an account? 
@@ -112,7 +105,6 @@
                     </div>
                 </div>
                 
-                <!-- Additional Info -->
                 <div class="text-center mt-4">
                     <div class="row g-3">
                         <div class="col-4">
@@ -131,7 +123,6 @@
                 </div>
             </div>
             
-            <!-- Side Image/Content -->
             <div class="col-lg-6 offset-lg-1 d-none d-lg-block">
                 <div class="position-relative h-100 d-flex align-items-center">
                     <div class="text-center">
@@ -145,7 +136,6 @@
                             </p>
                         </div>
                         
-                        <!-- Feature Cards -->
                         <div class="row g-4">
                             <div class="col-6">
                                 <div class="card border-0 bg-primary bg-opacity-5 rounded-xl text-center p-3">
@@ -229,7 +219,6 @@
     min-height: 100vh;
 }
 
-/* Form Validation Styles */
 .was-validated .form-control:valid {
     border-color: var(--success-500);
 }
@@ -238,7 +227,6 @@
     border-color: var(--danger-500);
 }
 
-/* Hover Effects */
 .btn:hover {
     transform: translateY(-1px);
 }
@@ -247,7 +235,6 @@
     transform: translateY(-2px);
 }
 
-/* Animation for cards */
 .card {
     transition: all 0.3s ease;
 }
@@ -280,7 +267,6 @@ function togglePassword() {
     }
 }
 
-// Form validation
 (function() {
     'use strict';
     window.addEventListener('load', function() {
@@ -297,14 +283,12 @@ function togglePassword() {
     }, false);
 })();
 
-// Add loading state to submit button
 document.querySelector('form').addEventListener('submit', function(e) {
     const submitBtn = this.querySelector('button[type="submit"]');
     submitBtn.innerHTML = '<i class="bi bi-arrow-clockwise spin me-2"></i>Signing in...';
     submitBtn.disabled = true;
 });
 
-// Add spinning animation
 const style = document.createElement('style');
 style.textContent = `
     .spin {

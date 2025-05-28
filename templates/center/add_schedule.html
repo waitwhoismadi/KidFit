@@ -1,4 +1,3 @@
-<!-- templates/center/add_schedule.html -->
 {% extends "base.html" %}
 
 {% block title %}Add Schedule - {{ super() }}{% endblock %}
@@ -28,7 +27,6 @@
                     {% else %}
                     
                     <form method="POST">
-                        <!-- Program and Teacher Selection -->
                         <h5 class="mb-3">Class Information</h5>
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -51,7 +49,6 @@
                             </div>
                         </div>
                         
-                        <!-- Schedule Time -->
                         <h5 class="mb-3 mt-4">Schedule Time</h5>
                         <div class="row">
                             <div class="col-md-4 mb-3">
@@ -77,7 +74,6 @@
                             </div>
                         </div>
                         
-                        <!-- Additional Settings -->
                         <h5 class="mb-3 mt-4">Additional Settings</h5>
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -98,7 +94,6 @@
                                       placeholder="Any special instructions or notes about this class"></textarea>
                         </div>
                         
-                        <!-- Submit Buttons -->
                         <div class="d-flex justify-content-between">
                             <a href="{{ url_for('center_schedules') }}" class="btn btn-secondary">
                                 <i class="bi bi-arrow-left me-2"></i>Cancel
@@ -118,11 +113,9 @@
 
 <script>
 document.getElementById('program_id').addEventListener('change', function() {
-    // This could be enhanced to fetch program duration via AJAX
-    // For now, users will set times manually
+    
 });
 
-// Validate that end time is after start time
 document.getElementById('end_time').addEventListener('change', function() {
     const startTime = document.getElementById('start_time').value;
     const endTime = document.getElementById('end_time').value;

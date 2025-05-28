@@ -42,7 +42,6 @@
 {% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
 <div class="hero-section">
     <div class="container">
         <div class="row align-items-center">
@@ -93,9 +92,7 @@
 
 <div class="container">
     <div class="row g-4">
-        <!-- Main Content -->
         <div class="col-lg-8">
-            <!-- Program Description -->
             {% if program.description %}
             <div class="card mb-4">
                 <div class="card-header">
@@ -107,7 +104,6 @@
             </div>
             {% endif %}
             
-            <!-- Class Schedules -->
             <div class="card mb-4">
                 <div class="card-header">
                     <h4 class="mb-0">Available Class Times</h4>
@@ -176,7 +172,6 @@
                 </div>
             </div>
             
-            <!-- Requirements & Benefits -->
             <div class="row g-4">
                 {% if program.requirements %}
                 <div class="col-md-6">
@@ -210,9 +205,7 @@
             </div>
         </div>
         
-        <!-- Sidebar -->
         <div class="col-lg-4">
-            <!-- Quick Info -->
             <div class="card mb-4">
                 <div class="card-header">
                     <h5 class="mb-0">Program Details</h5>
@@ -249,7 +242,6 @@
                 </div>
             </div>
             
-            <!-- Center Information -->
             <div class="card mb-4">
                 <div class="card-header">
                     <h5 class="mb-0">About {{ program.center.center_name }}</h5>
@@ -291,7 +283,6 @@
                 </div>
             </div>
             
-            <!-- Related Programs -->
             {% set related_programs = program.center.programs|selectattr('is_active')|selectattr('category_id', 'equalto', program.category_id)|reject('id', 'equalto', program.id)|list %}
             {% if related_programs %}
             <div class="card">
@@ -322,7 +313,6 @@
 function enrollInClass(scheduleId) {
     {% if session.user_id %}
         {% if session.user_role == 'parent' %}
-            // Redirect to parent dashboard with enrollment modal
             window.location.href = `{{ url_for('parent_dashboard') }}?enroll_schedule=${scheduleId}`;
         {% else %}
             alert('Only parents can enroll children in programs. Please login as a parent or create a parent account.');

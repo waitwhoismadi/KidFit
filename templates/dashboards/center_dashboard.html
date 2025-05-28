@@ -5,7 +5,6 @@
 {% block content %}
 <div class="container-fluid">
     <div class="row g-0">
-        <!-- Modern Sidebar -->
         <div class="col-xl-3 col-lg-4">
             <div class="sidebar">
                 <div class="p-4">
@@ -49,7 +48,6 @@
                         </a>
                     </nav>
                     
-                    <!-- Quick Stats in Sidebar -->
                     <div class="mt-4 pt-4 border-top border-white border-opacity-20">
                         <div class="row g-2 text-center">
                             <div class="col-6">
@@ -70,10 +68,8 @@
             </div>
         </div>
         
-        <!-- Main Content -->
         <div class="col-xl-9 col-lg-8">
             <div class="content-wrapper">
-                <!-- Header -->
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
                         <h1 class="h3 fw-bold text-gray-800 mb-1">Center Dashboard</h1>
@@ -103,7 +99,6 @@
                     </div>
                 </div>
                 
-                <!-- Welcome Message -->
                 {% if center %}
                 <div class="card border-0 shadow-soft mb-4 bg-gradient-primary">
                     <div class="card-body p-4">
@@ -134,7 +129,6 @@
                 </div>
                 {% endif %}
                 
-                <!-- Stats Cards -->
                 <div class="row g-4 mb-4">
                     <div class="col-lg-3 col-md-6">
                         <div class="card border-0 shadow-soft h-100">
@@ -207,7 +201,6 @@
                 </div>
                 
                 <div class="row g-4">
-                    <!-- Recent Programs -->
                     <div class="col-lg-4">
                         <div class="card border-0 shadow-soft h-100">
                             <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
@@ -257,7 +250,6 @@
                         </div>
                     </div>
                     
-                    <!-- Recent Schedules -->
                     <div class="col-lg-4">
                         <div class="card border-0 shadow-soft h-100">
                             <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
@@ -305,7 +297,6 @@
                         </div>
                     </div>
                     
-                    <!-- Teacher Invite & Management -->
                     <div class="col-lg-4">
                         <div class="card border-0 shadow-soft h-100">
                             <div class="card-header bg-white border-0">
@@ -333,7 +324,6 @@
                                     </div>
                                 </div>
                                 
-                                <!-- Teachers List -->
                                 {% if teachers %}
                                 <div class="border-top pt-3">
                                     <h6 class="fw-bold text-gray-700 mb-3">Your Teachers ({{ teachers|length }})</h6>
@@ -377,7 +367,6 @@
                     </div>
                 </div>
                 
-                <!-- Quick Actions Section -->
                 <div class="card border-0 shadow-soft mt-4">
                     <div class="card-header bg-white border-0">
                         <h5 class="fw-bold mb-0">
@@ -565,7 +554,6 @@ function showNotification(message, type) {
     
     document.body.appendChild(alert);
     
-    // Auto dismiss after 5 seconds
     setTimeout(() => {
         if (alert.parentNode) {
             alert.remove();
@@ -573,7 +561,6 @@ function showNotification(message, type) {
     }, 5000);
 }
 
-// Add spinning animation
 const style = document.createElement('style');
 style.textContent = `
     .spin {
@@ -587,9 +574,7 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Initialize animations on page load
 document.addEventListener('DOMContentLoaded', function() {
-    // Add fade-in animation to cards
     document.querySelectorAll('.card').forEach((card, index) => {
         card.style.animationDelay = `${index * 0.1}s`;
         card.classList.add('fade-in');

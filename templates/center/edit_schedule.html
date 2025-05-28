@@ -15,7 +15,6 @@
                 </div>
                 <div class="card-body">
                     <form method="POST">
-                        <!-- Program and Teacher Selection -->
                         <h5 class="mb-3">Class Information</h5>
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -44,7 +43,6 @@
                             </div>
                         </div>
                         
-                        <!-- Schedule Time -->
                         <h5 class="mb-3 mt-4">Schedule Time</h5>
                         <div class="row">
                             <div class="col-md-4 mb-3">
@@ -72,7 +70,6 @@
                             </div>
                         </div>
                         
-                        <!-- Additional Settings -->
                         <h5 class="mb-3 mt-4">Additional Settings</h5>
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -93,7 +90,6 @@
                                       placeholder="Any special instructions or notes about this class">{{ schedule.notes or '' }}</textarea>
                         </div>
                         
-                        <!-- Schedule Status -->
                         <h5 class="mb-3 mt-4">Schedule Status</h5>
                         <div class="form-check mb-3">
                             <input class="form-check-input" type="checkbox" id="is_active" name="is_active" 
@@ -103,7 +99,6 @@
                             </label>
                         </div>
                         
-                        <!-- Current Enrollments Info -->
                         {% if schedule.enrollments %}
                         <div class="alert alert-info">
                             <i class="bi bi-info-circle me-2"></i>
@@ -112,7 +107,6 @@
                         </div>
                         {% endif %}
                         
-                        <!-- Submit Buttons -->
                         <div class="d-flex justify-content-between">
                             <a href="{{ url_for('center_schedules') }}" class="btn btn-secondary">
                                 <i class="bi bi-arrow-left me-2"></i>Cancel
@@ -129,7 +123,6 @@
 </div>
 
 <script>
-// Validate that end time is after start time
 document.getElementById('end_time').addEventListener('change', function() {
     const startTime = document.getElementById('start_time').value;
     const endTime = document.getElementById('end_time').value;

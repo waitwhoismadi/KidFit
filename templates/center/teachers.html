@@ -5,7 +5,6 @@
 {% block content %}
 <div class="container-fluid">
     <div class="row">
-        <!-- Sidebar -->
         <div class="col-md-3">
             <div class="sidebar">
                 <div class="p-3">
@@ -36,7 +35,6 @@
             </div>
         </div>
         
-        <!-- Main Content -->
         <div class="col-md-9">
             <div class="content-wrapper">
                 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -49,7 +47,6 @@
                     </div>
                 </div>
                 
-                <!-- Invite Code Section -->
                 <div class="card mb-4">
                     <div class="card-body">
                         <div class="row align-items-center">
@@ -77,7 +74,6 @@
                     </div>
                 </div>
                 
-                <!-- Teachers List -->
                 {% if teachers %}
                 <div class="row g-4">
                     {% for teacher in teachers %}
@@ -138,7 +134,6 @@
                                 <p class="small text-muted mb-3">{{ teacher.bio[:100] }}{% if teacher.bio|length > 100 %}...{% endif %}</p>
                                 {% endif %}
                                 
-                                <!-- Teacher Stats -->
                                 <div class="row g-2 text-center">
                                     <div class="col-6">
                                         <div class="bg-light p-2 rounded">
@@ -165,7 +160,6 @@
                     {% endfor %}
                 </div>
                 {% else %}
-                <!-- Empty State -->
                 <div class="text-center py-5">
                     <i class="bi bi-person-workspace display-1 text-muted mb-4"></i>
                     <h3>No Teachers Yet</h3>
@@ -196,7 +190,6 @@
     </div>
 </div>
 
-<!-- Teacher Details Modal -->
 <div class="modal fade" id="teacherDetailsModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -205,13 +198,12 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="teacherDetailsContent">
-                <!-- Content will be loaded here -->
+
             </div>
         </div>
     </div>
 </div>
 
-<!-- Remove Teacher Modal -->
 <div class="modal fade" id="removeTeacherModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -279,7 +271,6 @@ function viewTeacherDetails(teacherId) {
 }
 
 function editTeacher(teacherId) {
-    // Redirect to teacher edit page or show edit modal
     window.location.href = `/center/teacher/${teacherId}/edit`;
 }
 

@@ -3,7 +3,6 @@
 {% block title %}Parent Dashboard - {{ super() }}{% endblock %}
 
 {% block extra_css %}
-<!-- Leaflet CSS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
      crossorigin=""/>
@@ -327,7 +326,6 @@
 
 {% block content %}
 <div class="container-fluid py-4">
-    <!-- Welcome Section -->
     <div class="welcome-card fade-in">
         <div class="welcome-content">
             <div class="row align-items-center">
@@ -399,7 +397,6 @@
         </div>
     </div>
 
-    <!-- Search and Filter Section -->
     <div class="search-filters slide-in">
         <div class="row align-items-center">
             <div class="col-lg-8">
@@ -463,10 +460,8 @@
     </div>
 
     <div class="row g-4">
-        <!-- Left Panel - Center Cards -->
         <div class="col-lg-6" id="centersList">
             {% if children %}
-            <!-- Quick Children Overview -->
             <div class="card border-0 shadow-soft mb-4 fade-in">
                 <div class="card-header bg-white border-0">
                     <div class="d-flex justify-content-between align-items-center">
@@ -529,7 +524,6 @@
             </div>
             {% endif %}
             
-            <!-- Center Cards -->
             <div id="centersContainer">
             {% if centers %}
                 {% for center in centers %}
@@ -569,7 +563,6 @@
                                 
                                 <p class="text-muted mb-3">{{ center.description or "Quality education programs for children and teenagers." }}</p>
                                 
-                                <!-- Program Preview -->
                                 {% if center.programs %}
                                 <div class="mb-3">
                                     <h6 class="small fw-bold text-gray-700 mb-2">Featured Programs:</h6>
@@ -590,7 +583,6 @@
                                 </div>
                                 {% endif %}
                                 
-                                <!-- Contact Info -->
                                 <div class="d-flex align-items-center text-muted small mb-3">
                                     {% if center.user.phone %}
                                     <div class="me-3">
@@ -604,7 +596,6 @@
                                     {% endif %}
                                 </div>
                                 
-                                <!-- Action Buttons -->
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div class="btn-group">
                                         <a href="{{ url_for('view_center', center_id=center.id) }}" class="btn btn-outline-primary btn-sm">
@@ -645,7 +636,6 @@
             </div>
         </div>
         
-        <!-- Right Panel - Interactive Map -->
         <div class="col-lg-6" id="mapPanel">
             <div class="card border-0 shadow-soft fade-in">
                 <div class="card-header bg-white border-0">
@@ -677,7 +667,6 @@
     </div>
 </div>
 
-<!-- Enhanced Enrollment Modal -->
 <div class="modal fade" id="enrollmentModal" tabindex="-1">
     <div class="modal-dialog modal-xl">
         <div class="modal-content border-0 rounded-xl">
@@ -688,7 +677,6 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
-                <!-- Child Selection -->
                 <div id="childSelectionSection" class="mb-4">
                     <h6 class="fw-bold text-gray-700 mb-3">
                         <i class="bi bi-person me-2"></i>Select Child:
@@ -716,13 +704,12 @@
                     </div>
                 </div>
                 
-                <!-- Program Selection -->
                 <div id="programSelectionSection" style="display: none;">
                     <h6 class="fw-bold text-gray-700 mb-3">
                         <i class="bi bi-mortarboard me-2"></i>Available Programs for <span id="selectedChildName" class="text-primary"></span>:
                     </h6>
                     <div id="programsContainer">
-                        <!-- Programs will be loaded here -->
+
                     </div>
                 </div>
             </div>
@@ -730,7 +717,6 @@
     </div>
 </div>
 
-<!-- Program Quick View Modal -->
 <div class="modal fade" id="programModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content border-0 rounded-xl">
@@ -739,7 +725,6 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="programModalBody">
-                <!-- Program details will be loaded here -->
             </div>
         </div>
     </div>
@@ -747,13 +732,11 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- Leaflet JavaScript -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
      crossorigin=""></script>
 
 <script>
-// Global variables
 let map;
 let markers = [];
 let userMarker = null;
@@ -762,22 +745,17 @@ let centersData = [];
 let selectedCategory = '';
 let selectedChild = null;
 
-// Initialize map
 function initializeMap() {
-    // Create map centered on Astana
     map = L.map('map').setView([51.1605, 71.4704], 11);
     
-    // Add modern tile layer
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 18,
         attribution: '© OpenStreetMap contributors'
     }).addTo(map);
     
-    // Load centers data
     loadCentersData();
 }
 
-// Load centers from API
 function loadCentersData() {
     fetch('/api/centers')
         .then(response => response.json())
@@ -790,13 +768,10 @@ function loadCentersData() {
         });
 }
 
-// Update map markers with modern styling
 function updateMapMarkers() {
-    // Clear existing markers
     markers.forEach(marker => map.removeLayer(marker));
     markers = [];
     
-    // Filter centers based on current filters
     let filteredCenters = centersData;
     
     if (selectedCategory) {
@@ -805,12 +780,10 @@ function updateMapMarkers() {
         );
     }
     
-    // Add markers for filtered centers
     filteredCenters.forEach(center => {
         const marker = L.marker([center.latitude, center.longitude])
             .addTo(map);
         
-        // Create modern popup content
         const popupContent = `
             <div class="map-popup">
                 <h6 class="fw-bold text-primary">${center.name}</h6>
@@ -843,11 +816,9 @@ function updateMapMarkers() {
         markers.push(marker);
     });
     
-    // Update center count
     document.getElementById('centersCount').textContent = filteredCenters.length;
 }
 
-// Enhanced enrollment functions
 function selectChildForEnrollment(childId, childName) {
     selectedChild = { id: childId, name: childName };
     showEnrollmentModal();
@@ -857,7 +828,6 @@ function showEnrollmentModal() {
     {% if children %}
     new bootstrap.Modal(document.getElementById('enrollmentModal')).show();
     {% else %}
-    // Show elegant notification
     showNotification('Please add children to your family first before enrolling in programs.', 'info');
     setTimeout(() => {
         window.location.href = '{{ url_for('add_child') }}';
@@ -866,7 +836,6 @@ function showEnrollmentModal() {
 }
 
 function selectChild(childId, childName) {
-    // Highlight selected child with modern styling
     document.querySelectorAll('.child-select-card').forEach(card => {
         card.classList.remove('border-primary', 'bg-primary', 'text-white');
         card.classList.add('border-gray-200');
@@ -879,12 +848,10 @@ function selectChild(childId, childName) {
     selectedChild = { id: childId, name: childName };
     document.getElementById('selectedChildName').textContent = childName;
     
-    // Show program selection with animation
     const programSection = document.getElementById('programSelectionSection');
     programSection.style.display = 'block';
     programSection.classList.add('fade-in');
     
-    // Load available programs
     loadAvailablePrograms(childId);
 }
 
@@ -983,7 +950,6 @@ function loadAvailablePrograms(childId) {
 
 function enrollInSchedule(childId, scheduleId, programName, scheduleInfo) {
     if (confirm(`Enroll ${selectedChild.name} in ${programName} (${scheduleInfo})?`)) {
-        // Show loading state
         const btn = event.target;
         const originalText = btn.innerHTML;
         btn.innerHTML = '<i class="bi bi-arrow-clockwise spin me-1"></i>Enrolling...';
@@ -1004,7 +970,6 @@ function enrollInSchedule(childId, scheduleId, programName, scheduleInfo) {
             if (data.success) {
                 showNotification(data.message, 'success');
                 bootstrap.Modal.getInstance(document.getElementById('enrollmentModal')).hide();
-                // Refresh the page to show updated enrollment
                 setTimeout(() => location.reload(), 1500);
             } else {
                 showNotification(data.error, 'error');
@@ -1020,9 +985,7 @@ function enrollInSchedule(childId, scheduleId, programName, scheduleInfo) {
     }
 }
 
-// Helper functions
 function getProgramColorClass(hexColor) {
-    // Convert hex color to appropriate Bootstrap class
     const colorMap = {
         '#3b82f6': 'primary',
         '#10b981': 'success',
@@ -1048,7 +1011,6 @@ function showNotification(message, type) {
     
     document.body.appendChild(alert);
     
-    // Auto dismiss after 5 seconds
     setTimeout(() => {
         if (alert.parentNode) {
             alert.remove();
@@ -1056,7 +1018,6 @@ function showNotification(message, type) {
     }, 5000);
 }
 
-// Filter functions
 function filterCenters() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const centerCards = document.querySelectorAll('.center-card');
@@ -1078,16 +1039,13 @@ function filterCenters() {
 function filterByCategory(categoryId) {
     selectedCategory = categoryId;
     
-    // Update UI with modern styling
     document.querySelectorAll('.category-chip').forEach(chip => {
         chip.classList.remove('active');
     });
     document.querySelector(`[data-category="${categoryId}"]`).classList.add('active');
     
-    // Update map
     updateMapMarkers();
     
-    // Update selected category display
     const categoryName = categoryId ? 
         document.querySelector(`[data-category="${categoryId}"]`).textContent.trim() : 
         'All';
@@ -1098,7 +1056,6 @@ function setUserLocation() {
     const address = document.getElementById('userLocationInput').value;
     if (!address) return;
     
-    // Show loading state
     const button = event.target;
     button.innerHTML = '<i class="bi bi-arrow-clockwise spin"></i>';
     button.disabled = true;
@@ -1109,12 +1066,10 @@ function setUserLocation() {
             if (data.success) {
                 userLocation = [data.latitude, data.longitude];
                 
-                // Remove existing user marker
                 if (userMarker) {
                     map.removeLayer(userMarker);
                 }
                 
-                // Add modern user location marker
                 userMarker = L.marker(userLocation, {
                     icon: L.icon({
                         iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
@@ -1128,10 +1083,8 @@ function setUserLocation() {
                 
                 userMarker.bindPopup('<div class="text-center"><b>Your Location</b><br><small class="text-muted">Distance calculations are based from here</small></div>').openPopup();
                 
-                // Update distances
                 updateDistances();
                 
-                // Focus map on user location
                 map.setView(userLocation, 13);
                 
                 showNotification('Location set successfully!', 'success');
@@ -1168,7 +1121,6 @@ function updateDistances() {
 function focusOnCenter(lat, lng) {
     map.setView([lat, lng], 15);
     
-    // Find and open the marker popup
     markers.forEach(marker => {
         const markerPos = marker.getLatLng();
         if (Math.abs(markerPos.lat - lat) < 0.001 && Math.abs(markerPos.lng - lng) < 0.001) {
@@ -1181,7 +1133,6 @@ function showListView() {
     document.getElementById('centersList').classList.remove('d-none');
     document.getElementById('mapPanel').classList.add('d-none');
     
-    // Update button states
     document.querySelectorAll('.view-toggle .btn').forEach(btn => btn.classList.remove('active'));
     event.target.classList.add('active');
 }
@@ -1190,11 +1141,9 @@ function showMapView() {
     document.getElementById('centersList').classList.add('d-none');
     document.getElementById('mapPanel').classList.remove('d-none');
     
-    // Update button states
     document.querySelectorAll('.view-toggle .btn').forEach(btn => btn.classList.remove('active'));
     event.target.classList.add('active');
     
-    // Refresh map size
     setTimeout(() => {
         map.invalidateSize();
     }, 100);
@@ -1202,7 +1151,7 @@ function showMapView() {
 
 function showCenterPrograms(centerId, centerName) {
     {% if children %}
-    // If only one child, select automatically
+
     {% if children|length == 1 %}
     selectedChild = { id: {{ children[0].id }}, name: '{{ children[0].name }}' };
     document.getElementById('selectedChildName').textContent = '{{ children[0].name }}';
@@ -1235,11 +1184,9 @@ function showProgramModal(programId, centerId) {
         });
 }
 
-// Initialize map when page loads
 document.addEventListener('DOMContentLoaded', function() {
     initializeMap();
     
-    // Add smooth animations to elements as they come into view
     const observerOptions = {
         threshold: 0.1,
         rootMargin: '0px 0px -50px 0px'
@@ -1257,18 +1204,15 @@ document.addEventListener('DOMContentLoaded', function() {
         observer.observe(el);
     });
     
-    // Check for URL parameters (e.g., from program detail page)
     const urlParams = new URLSearchParams(window.location.search);
     const enrollScheduleId = urlParams.get('enroll_schedule');
     if (enrollScheduleId) {
-        // Show enrollment modal for specific schedule
         setTimeout(() => {
             showEnrollmentModal();
         }, 1000);
     }
 });
 
-// Add spinning animation for loading states
 const style = document.createElement('style');
 style.textContent = `
     .spin {

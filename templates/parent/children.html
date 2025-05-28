@@ -17,7 +17,6 @@
         <div class="col-md-6 col-lg-4">
             <div class="card h-100 child-card">
                 <div class="card-body text-center">
-                    <!-- Child Photo -->
                     {% if child.photo_url %}
                     <img src="{{ url_for('static', filename='uploads/' + child.photo_url) }}" 
                          class="rounded-circle mb-3" style="width: 80px; height: 80px; object-fit: cover;">
@@ -30,7 +29,6 @@
                     
                     <h5 class="card-title">{{ child.name }}</h5>
                     
-                    <!-- Child Info -->
                     <div class="mb-3">
                         {% if child.calculate_age() %}
                         <p class="text-muted mb-1">
@@ -50,7 +48,6 @@
                         </p>
                     </div>
                     
-                    <!-- Current Enrollments -->
                     {% set active_enrollments = child.enrollments|selectattr('status', 'equalto', 'active')|list %}
                     {% if active_enrollments %}
                     <div class="mb-3">
@@ -109,7 +106,6 @@
     {% endif %}
 </div>
 
-<!-- Enrollment Modal -->
 <div class="modal fade" id="enrollModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -132,7 +128,6 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -232,7 +227,6 @@ function enrollChild(childId, scheduleId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Show success message
             const alert = document.createElement('div');
             alert.className = 'alert alert-success alert-dismissible fade show';
             alert.innerHTML = `
@@ -242,11 +236,9 @@ function enrollChild(childId, scheduleId) {
             `;
             document.querySelector('.container').insertBefore(alert, document.querySelector('.container').firstChild);
             
-            // Close modal and refresh page
             bootstrap.Modal.getInstance(document.getElementById('enrollModal')).hide();
             setTimeout(() => location.reload(), 1500);
         } else {
-            // Show error message in modal
             const alert = document.createElement('div');
             alert.className = 'alert alert-danger alert-dismissible fade show';
             alert.innerHTML = `

@@ -5,7 +5,6 @@
 {% block content %}
 <div class="min-vh-100 bg-gradient py-5">
     <div class="container">
-        <!-- Header Section -->
         <div class="text-center mb-5">
             <div class="badge bg-primary bg-opacity-10 text-primary px-4 py-2 mb-4 rounded-pill">
                 <i class="bi bi-people me-2"></i>
@@ -20,13 +19,10 @@
             </p>
         </div>
         
-        <!-- Role Selection Cards -->
         <div class="row g-4 justify-content-center">
-            <!-- Parent Registration -->
             <div class="col-lg-4 col-md-6">
                 <div class="card h-100 border-0 shadow-medium hover-lift role-card" data-role="parent">
                     <div class="card-body p-4 text-center position-relative">
-                        <!-- Popular Badge -->
                         <div class="position-absolute top-0 start-50 translate-middle">
                             <span class="badge bg-primary px-3 py-2 rounded-pill shadow-sm">
                                 <i class="bi bi-star-fill me-1"></i>
@@ -34,20 +30,17 @@
                             </span>
                         </div>
                         
-                        <!-- Icon -->
                         <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4 mt-3" 
                              style="width: 100px; height: 100px;">
                             <i class="bi bi-people-fill text-primary" style="font-size: 3rem;"></i>
                         </div>
                         
-                        <!-- Content -->
                         <h4 class="fw-bold mb-3">Parent</h4>
                         <p class="text-muted mb-4">
                             Find amazing education centers for your children. Search on our interactive map, 
                             compare programs, and enroll with ease.
                         </p>
                         
-                        <!-- Features List -->
                         <div class="text-start mb-4">
                             <div class="feature-item d-flex align-items-center mb-3">
                                 <div class="bg-success rounded-circle d-flex align-items-center justify-content-center me-3" 
@@ -79,7 +72,6 @@
                             </div>
                         </div>
                         
-                        <!-- Stats -->
                         <div class="row g-3 mb-4 py-3 bg-gray-50 rounded-xl">
                             <div class="col-4 text-center">
                                 <div class="fw-bold text-primary">500+</div>
@@ -95,7 +87,6 @@
                             </div>
                         </div>
                         
-                        <!-- CTA Button -->
                         <a href="{{ url_for('register_parent') }}" class="btn btn-primary w-100 py-3 fw-medium rounded-xl">
                             <i class="bi bi-person-plus me-2"></i>
                             Register as Parent
@@ -104,24 +95,20 @@
                 </div>
             </div>
             
-            <!-- Center Registration -->
             <div class="col-lg-4 col-md-6">
                 <div class="card h-100 border-0 shadow-medium hover-lift role-card" data-role="center">
                     <div class="card-body p-4 text-center">
-                        <!-- Icon -->
                         <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" 
                              style="width: 100px; height: 100px;">
                             <i class="bi bi-building text-success" style="font-size: 3rem;"></i>
                         </div>
                         
-                        <!-- Content -->
                         <h4 class="fw-bold mb-3">Education Center</h4>
                         <p class="text-muted mb-4">
                             Showcase your center to families in Astana. Manage programs, schedules, 
                             and grow your student community.
                         </p>
                         
-                        <!-- Features List -->
                         <div class="text-start mb-4">
                             <div class="feature-item d-flex align-items-center mb-3">
                                 <div class="bg-success rounded-circle d-flex align-items-center justify-content-center me-3" 
@@ -153,7 +140,6 @@
                             </div>
                         </div>
                         
-                        <!-- CTA Button -->
                         <a href="{{ url_for('register_center') }}" class="btn btn-success w-100 py-3 fw-medium rounded-xl">
                             <i class="bi bi-building-add me-2"></i>
                             Register Your Center
@@ -162,24 +148,20 @@
                 </div>
             </div>
             
-            <!-- Teacher Registration -->
             <div class="col-lg-4 col-md-6">
                 <div class="card h-100 border-0 shadow-medium hover-lift role-card" data-role="teacher">
                     <div class="card-body p-4 text-center">
-                        <!-- Icon -->
                         <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-4" 
                              style="width: 100px; height: 100px;">
                             <i class="bi bi-person-workspace text-warning" style="font-size: 3rem;"></i>
                         </div>
                         
-                        <!-- Content -->
                         <h4 class="fw-bold mb-3">Teacher</h4>
                         <p class="text-muted mb-4">
                             Join an education center using an invite code. Access your schedule, 
                             manage students, and focus on teaching.
                         </p>
                         
-                        <!-- Features List -->
                         <div class="text-start mb-4">
                             <div class="feature-item d-flex align-items-center mb-3">
                                 <div class="bg-success rounded-circle d-flex align-items-center justify-content-center me-3" 
@@ -211,13 +193,11 @@
                             </div>
                         </div>
                         
-                        <!-- Info Alert -->
                         <div class="alert alert-warning bg-warning bg-opacity-10 border-0 rounded-xl mb-4">
                             <i class="bi bi-info-circle me-2"></i>
                             <small>You need an <strong>invite code</strong> from an education center</small>
                         </div>
                         
-                        <!-- CTA Button -->
                         <a href="{{ url_for('register_teacher') }}" class="btn btn-warning w-100 py-3 fw-medium rounded-xl">
                             <i class="bi bi-person-plus me-2"></i>
                             Join as Teacher
@@ -227,7 +207,6 @@
             </div>
         </div>
         
-        <!-- Bottom Section -->
         <div class="text-center mt-5 pt-4">
             <p class="text-muted mb-4">
                 Already have an account? 
@@ -236,7 +215,6 @@
                 </a>
             </p>
             
-            <!-- Trust Indicators -->
             <div class="row justify-content-center">
                 <div class="col-lg-8">
                     <div class="row g-4 text-center">
@@ -343,7 +321,6 @@
     min-height: 100vh;
 }
 
-/* Card Animation on Load */
 .role-card {
     animation: fadeInUp 0.6s ease-out;
     animation-fill-mode: both;
@@ -364,7 +341,6 @@
     }
 }
 
-/* Button Hover Effects */
 .btn {
     transition: all 0.3s ease;
     position: relative;
@@ -391,7 +367,6 @@
     box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
     .min-vh-100 {
         min-height: auto;
@@ -410,7 +385,6 @@
     }
 }
 
-/* Loading Animation */
 .loading-shimmer {
     background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
     background-size: 200% 100%;
@@ -424,19 +398,16 @@
 </style>
 
 <script>
-// Add click animation to cards
 document.querySelectorAll('.role-card').forEach(card => {
     card.addEventListener('click', function(e) {
         if (!e.target.closest('a')) {
             const link = this.querySelector('a');
             if (link) {
-                // Add loading state
                 const btn = this.querySelector('.btn');
                 const originalText = btn.innerHTML;
                 btn.innerHTML = '<i class="bi bi-arrow-clockwise spin me-2"></i>Loading...';
                 btn.classList.add('loading-shimmer');
                 
-                // Navigate after short delay
                 setTimeout(() => {
                     window.location.href = link.href;
                 }, 300);
@@ -445,7 +416,6 @@ document.querySelectorAll('.role-card').forEach(card => {
     });
 });
 
-// Add spinning animation
 const style = document.createElement('style');
 style.textContent = `
     .spin {
@@ -459,10 +429,8 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Add smooth scroll for better UX
 document.documentElement.style.scrollBehavior = 'smooth';
 
-// Add intersection observer for animations
 const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {

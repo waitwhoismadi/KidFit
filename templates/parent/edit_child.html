@@ -12,7 +12,6 @@
                 </div>
                 <div class="card-body">
                     <form method="POST" enctype="multipart/form-data">
-                        <!-- Current Photo -->
                         <div class="text-center mb-4">
                             <div id="photoPreview" class="mb-3">
                                 {% if child.photo_url %}
@@ -33,7 +32,6 @@
                             </div>
                         </div>
                         
-                        <!-- Basic Information -->
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="name" class="form-label">Child Name *</label>
@@ -58,7 +56,6 @@
                             <textarea class="form-control" id="notes" name="notes" rows="3">{{ child.notes or '' }}</textarea>
                         </div>
                         
-                        <!-- Current Enrollments Info -->
                         {% set active_enrollments = child.enrollments|selectattr('status', 'equalto', 'active')|list %}
                         {% if active_enrollments %}
                         <div class="alert alert-info">
@@ -79,7 +76,6 @@
                         </div>
                         {% endif %}
                         
-                        <!-- Submit Buttons -->
                         <div class="d-flex justify-content-between">
                             <a href="{{ url_for('manage_children') }}" class="btn btn-secondary">
                                 <i class="bi bi-arrow-left me-2"></i>Back to Children
