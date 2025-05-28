@@ -5,25 +5,20 @@ from functools import wraps
 import os
 import uuid
 from datetime import datetime, date
-# from demo_data import create_demo_data
 
-# Initialize Flask app
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-change-in-production'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///education_platform.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 
 
-# Initialize database
 from database import db
 db.init_app(app)
 
-# Import models and services
 from models import User, Parent, Center, Teacher, Child, Category, Program, Schedule, Enrollment, Attendance
 from services import GeocodingService
 
-# Role-based authentication decorator
 def login_required(role=None):
     def decorator(f):
         @wraps(f)
@@ -40,7 +35,6 @@ def login_required(role=None):
         return decorated_function
     return decorator
 
-# File upload helper
 def save_uploaded_file(file, folder='general'):
     if file and file.filename:
         filename = secure_filename(file.filename)
@@ -55,7 +49,6 @@ def save_uploaded_file(file, folder='general'):
         return f"{folder}/{filename}"
     return None
 
-# Routes
 @app.route('/')
 def index():
     """Landing page - redirect based on login status"""
@@ -65,7 +58,6 @@ def index():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    """Handle user login"""
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
@@ -86,12 +78,10 @@ def login():
 
 @app.route('/register')
 def register_choice():
-    """Registration type selection page"""
     return render_template('auth/register_choice.html')
 
 @app.route('/register/parent', methods=['GET', 'POST'])
 def register_parent():
-    """Parent registration"""
     if request.method == 'POST':
         name = request.form.get('name')
         email = request.form.get('email')
@@ -138,7 +128,6 @@ def register_parent():
 
 @app.route('/register/center', methods=['GET', 'POST'])
 def register_center():
-    """Education center registration"""
     if request.method == 'POST':
         center_name = request.form.get('center_name')
         name = request.form.get('name')
@@ -158,13 +147,11 @@ def register_center():
             return render_template('auth/register_center.html')
         
         try:
-            # Geocode the address
             geocoding_service = GeocodingService()
             coordinates = geocoding_service.geocode_address(address, "Astana", "Kazakhstan")
             
             if not coordinates:
                 flash('Could not locate the address. Please provide a more specific address in Astana.', 'warning')
-                # Still allow registration but without coordinates
                 latitude, longitude = None, None
             else:
                 latitude, longitude = coordinates
@@ -203,7 +190,6 @@ def register_center():
 
 @app.route('/register/teacher', methods=['GET', 'POST'])
 def register_teacher():
-    """Teacher registration with invite code"""
     if request.method == 'POST':
         invite_code = request.form.get('invite_code')
         name = request.form.get('name')
@@ -260,7 +246,6 @@ def register_teacher():
 @app.route('/dashboard')
 @login_required()
 def dashboard():
-    """Role-based dashboard routing"""
     role = session.get('user_role')
     
     if role == 'parent':
@@ -276,15 +261,12 @@ def dashboard():
 @app.route('/parent/dashboard')
 @login_required(role='parent')
 def parent_dashboard():
-    """Parent dashboard - search interface with centers and map"""
     parent = Parent.query.filter_by(user_id=session['user_id']).first()
     centers = Center.query.all()
     children = Child.query.filter_by(parent_id=parent.id).all() if parent else []
     
-    # Get categories for filtering
-    categories = Category.query.filter_by(parent_id=None).all()  # Main categories only
+    categories = Category.query.filter_by(parent_id=None).all() 
     
-    # Get centers with coordinates for map
     map_centers = [center for center in centers if center.latitude and center.longitude]
     
     return render_template('dashboards/parent_dashboard.html', 
@@ -294,11 +276,9 @@ def parent_dashboard():
                          categories=categories,
                          map_centers=map_centers)
 
-# NEW CHILD MANAGEMENT ROUTES
 @app.route('/parent/children')
 @login_required(role='parent')
 def manage_children():
-    """Manage children page"""
     parent = Parent.query.filter_by(user_id=session['user_id']).first()
     children = Child.query.filter_by(parent_id=parent.id).all() if parent else []
     
@@ -307,7 +287,6 @@ def manage_children():
 @app.route('/parent/children/add', methods=['GET', 'POST'])
 @login_required(role='parent')
 def add_child():
-    """Add new child"""
     parent = Parent.query.filter_by(user_id=session['user_id']).first()
     
     if request.method == 'POST':
@@ -320,7 +299,6 @@ def add_child():
             flash('Child name is required.', 'danger')
             return render_template('parent/add_child.html')
         
-        # Handle birth date
         birth_date = None
         if birth_date_str:
             try:
@@ -329,7 +307,6 @@ def add_child():
                 flash('Invalid birth date format.', 'danger')
                 return render_template('parent/add_child.html')
         
-        # Handle photo upload
         photo_url = None
         if 'photo' in request.files:
             file = request.files['photo']
@@ -361,7 +338,6 @@ def add_child():
 @app.route('/parent/children/<int:child_id>/edit', methods=['GET', 'POST'])
 @login_required(role='parent')
 def edit_child(child_id):
-    """Edit child information"""
     parent = Parent.query.filter_by(user_id=session['user_id']).first()
     child = Child.query.filter_by(id=child_id, parent_id=parent.id).first()
     
@@ -374,7 +350,6 @@ def edit_child(child_id):
         child.grade = request.form.get('grade')
         child.notes = request.form.get('notes')
         
-        # Handle birth date
         birth_date_str = request.form.get('birth_date')
         if birth_date_str:
             try:
@@ -383,7 +358,6 @@ def edit_child(child_id):
                 flash('Invalid birth date format.', 'danger')
                 return render_template('parent/edit_child.html', child=child)
         
-        # Handle photo upload
         if 'photo' in request.files:
             file = request.files['photo']
             if file and file.filename:
@@ -402,7 +376,6 @@ def edit_child(child_id):
 @app.route('/parent/children/<int:child_id>/delete', methods=['POST'])
 @login_required(role='parent')
 def delete_child(child_id):
-    """Delete child"""
     parent = Parent.query.filter_by(user_id=session['user_id']).first()
     child = Child.query.filter_by(id=child_id, parent_id=parent.id).first()
     
@@ -411,7 +384,6 @@ def delete_child(child_id):
         return redirect(url_for('manage_children'))
     
     try:
-        # Check for active enrollments
         active_enrollments = Enrollment.query.filter_by(child_id=child.id, status='active').count()
         if active_enrollments > 0:
             flash(f'Cannot delete {child.name}. Please cancel all active enrollments first.', 'danger')
@@ -427,11 +399,9 @@ def delete_child(child_id):
     
     return redirect(url_for('manage_children'))
 
-# ENHANCED ENROLLMENT SYSTEM
 @app.route('/enroll/<int:schedule_id>/<int:child_id>', methods=['POST'])
 @login_required(role='parent')
 def enroll_child(schedule_id, child_id):
-    """Enroll child in a program"""
     parent = Parent.query.filter_by(user_id=session['user_id']).first()
     child = Child.query.filter_by(id=child_id, parent_id=parent.id).first()
     schedule = Schedule.query.get_or_404(schedule_id)
@@ -439,7 +409,6 @@ def enroll_child(schedule_id, child_id):
     if not child:
         return jsonify({'error': 'Child not found'}), 404
     
-    # Check if already enrolled
     existing = Enrollment.query.filter_by(
         child_id=child_id, 
         schedule_id=schedule_id,
@@ -449,7 +418,6 @@ def enroll_child(schedule_id, child_id):
     if existing:
         return jsonify({'error': 'Child is already enrolled in this class'}), 400
     
-    # Check age requirements
     if child.birth_date:
         child_age = date.today().year - child.birth_date.year
         if schedule.program.min_age and child_age < schedule.program.min_age:
@@ -457,7 +425,6 @@ def enroll_child(schedule_id, child_id):
         if schedule.program.max_age and child_age > schedule.program.max_age:
             return jsonify({'error': f'Child is too old for this program (maximum age: {schedule.program.max_age})'}), 400
     
-    # Check capacity
     current_enrollments = Enrollment.query.filter_by(
         schedule_id=schedule_id,
         status='active'
@@ -466,7 +433,6 @@ def enroll_child(schedule_id, child_id):
     if current_enrollments >= schedule.max_students:
         return jsonify({'error': 'Class is full'}), 400
     
-    # Create enrollment
     try:
         enrollment = Enrollment(
             child_id=child_id,
@@ -486,24 +452,18 @@ def enroll_child(schedule_id, child_id):
         db.session.rollback()
         return jsonify({'error': 'Enrollment failed. Please try again.'}), 500
 
-# API ENDPOINTS FOR MAP FUNCTIONALITY AND CHILD MANAGEMENT
-
 @app.route('/api/centers')
 def api_centers():
-    """API endpoint to get centers data for map"""
     category_id = request.args.get('category_id')
     search_query = request.args.get('search', '')
     
-    # Base query
     query = Center.query
     
-    # Filter by category if provided
     if category_id:
         query = query.join(Program).join(Category).filter(
             Category.id == category_id
         ).distinct()
     
-    # Search filter
     if search_query:
         query = query.filter(
             Center.center_name.contains(search_query) |
@@ -513,11 +473,9 @@ def api_centers():
     
     centers = query.all()
     
-    # Format for JSON response
     centers_data = []
     for center in centers:
         if center.latitude and center.longitude:
-            # Get programs for this center
             programs = Program.query.filter_by(center_id=center.id, is_active=True).all()
             
             center_data = {
@@ -540,7 +498,7 @@ def api_centers():
                         'price': program.get_price_display(),
                         'age_range': program.get_age_range()
                     }
-                    for program in programs[:3]  # Limit to first 3 programs
+                    for program in programs[:3] 
                 ]
             }
             centers_data.append(center_data)
@@ -550,24 +508,20 @@ def api_centers():
 @app.route('/api/available-programs/<int:child_id>')
 @login_required(role='parent')
 def available_programs(child_id):
-    """Get available programs for a child"""
     parent = Parent.query.filter_by(user_id=session['user_id']).first()
     child = Child.query.filter_by(id=child_id, parent_id=parent.id).first()
     
     if not child:
         return jsonify({'error': 'Child not found'}), 404
     
-    # Get child's age
     child_age = None
     if child.birth_date:
         child_age = date.today().year - child.birth_date.year
     
-    # Get all active schedules
     schedules = Schedule.query.filter_by(is_active=True).all()
     
     available_programs = []
     for schedule in schedules:
-        # Check if already enrolled
         existing = Enrollment.query.filter_by(
             child_id=child_id,
             schedule_id=schedule.id,
@@ -577,14 +531,12 @@ def available_programs(child_id):
         if existing:
             continue
         
-        # Check age requirements
         if child_age:
             if schedule.program.min_age and child_age < schedule.program.min_age:
                 continue
             if schedule.program.max_age and child_age > schedule.program.max_age:
                 continue
         
-        # Check capacity
         current_enrollments = Enrollment.query.filter_by(
             schedule_id=schedule.id,
             status='active'
@@ -593,7 +545,6 @@ def available_programs(child_id):
         if current_enrollments >= schedule.max_students:
             continue
         
-        # Add to available programs
         program_data = {
             'id': schedule.program.id,
             'name': schedule.program.name,
@@ -615,7 +566,6 @@ def available_programs(child_id):
 
 @app.route('/api/geocode')
 def api_geocode():
-    """API endpoint for geocoding addresses"""
     address = request.args.get('address')
     if not address:
         return jsonify({'error': 'Address parameter required'}), 400
@@ -637,7 +587,6 @@ def api_geocode():
 
 @app.route('/api/distance')
 def api_distance():
-    """API endpoint to calculate distance between points"""
     try:
         lat1 = float(request.args.get('lat1'))
         lon1 = float(request.args.get('lon1'))
@@ -657,7 +606,6 @@ def api_distance():
 @app.route('/center/dashboard')
 @login_required(role='center')
 def center_dashboard():
-    """Center dashboard - manage profile, programs, teachers"""
     center = Center.query.filter_by(user_id=session['user_id']).first()
     teachers = Teacher.query.filter_by(center_id=center.id).all() if center else []
     programs = Program.query.filter_by(center_id=center.id).all() if center else []
@@ -687,7 +635,6 @@ def center_dashboard():
 @app.route('/teacher/dashboard')
 @login_required(role='teacher')
 def teacher_dashboard():
-    """Teacher dashboard - view schedule, students, classes"""
     teacher = Teacher.query.filter_by(user_id=session['user_id']).first()
     center = teacher.center if teacher else None
     schedules = Schedule.query.filter_by(teacher_id=teacher.id, is_active=True).all() if teacher else []
@@ -718,17 +665,13 @@ def teacher_dashboard():
 
 @app.route('/logout')
 def logout():
-    """Handle user logout"""
     session.clear()
     flash('You have been logged out successfully.', 'info')
     return redirect(url_for('index'))
 
-# PROGRAM MANAGEMENT ROUTES (keep all existing)
-
 @app.route('/center/programs')
 @login_required(role='center')
 def center_programs():
-    """Center program management page"""
     center = Center.query.filter_by(user_id=session['user_id']).first()
     programs = Program.query.filter_by(center_id=center.id).all() if center else []
     categories = Category.query.all()
@@ -741,7 +684,6 @@ def center_programs():
 @app.route('/center/programs/add', methods=['GET', 'POST'])
 @login_required(role='center')
 def add_program():
-    """Add new program"""
     center = Center.query.filter_by(user_id=session['user_id']).first()
     
     if request.method == 'POST':
@@ -763,7 +705,6 @@ def add_program():
             return redirect(request.url)
         
         try:
-            # Handle photo upload
             photo_url = None
             if 'photo' in request.files:
                 file = request.files['photo']
@@ -803,7 +744,6 @@ def add_program():
 @app.route('/center/programs/<int:program_id>/edit', methods=['GET', 'POST'])
 @login_required(role='center')
 def edit_program(program_id):
-    """Edit existing program"""
     center = Center.query.filter_by(user_id=session['user_id']).first()
     program = Program.query.filter_by(id=program_id, center_id=center.id).first()
     
@@ -839,7 +779,6 @@ def edit_program(program_id):
         program.benefits = request.form.get('benefits')
         program.is_active = bool(request.form.get('is_active'))
         
-        # Handle photo upload
         if 'photo' in request.files:
             file = request.files['photo']
             if file and file.filename:
@@ -859,7 +798,6 @@ def edit_program(program_id):
 @app.route('/center/programs/<int:program_id>/delete', methods=['POST'])
 @login_required(role='center')
 def delete_program(program_id):
-    """Delete program"""
     center = Center.query.filter_by(user_id=session['user_id']).first()
     program = Program.query.filter_by(id=program_id, center_id=center.id).first()
     
@@ -868,7 +806,6 @@ def delete_program(program_id):
         return redirect(url_for('center_programs'))
     
     try:
-        # Check for active enrollments
         active_enrollments = db.session.query(Enrollment).join(Schedule).filter(
             Schedule.program_id == program.id,
             Enrollment.status == 'active'
@@ -888,12 +825,9 @@ def delete_program(program_id):
     
     return redirect(url_for('center_programs'))
 
-# SCHEDULE MANAGEMENT ROUTES (keep all existing)
-
 @app.route('/center/schedules')
 @login_required(role='center')
 def center_schedules():
-    """Center schedule management page"""
     center = Center.query.filter_by(user_id=session['user_id']).first()
     
     schedules = Schedule.query.join(Program).filter(
@@ -912,7 +846,6 @@ def center_schedules():
 @app.route('/center/schedules/add', methods=['GET', 'POST'])
 @login_required(role='center')
 def add_schedule():
-    """Add new class schedule"""
     center = Center.query.filter_by(user_id=session['user_id']).first()
     
     if request.method == 'POST':
@@ -989,7 +922,6 @@ def add_schedule():
 @app.route('/center/schedules/<int:schedule_id>/edit', methods=['GET', 'POST'])
 @login_required(role='center')
 def edit_schedule(schedule_id):
-    """Edit existing schedule"""
     center = Center.query.filter_by(user_id=session['user_id']).first()
     
     schedule = Schedule.query.join(Program).filter(
@@ -1064,7 +996,6 @@ def edit_schedule(schedule_id):
 @app.route('/center/schedules/<int:schedule_id>/delete', methods=['POST'])
 @login_required(role='center')
 def delete_schedule(schedule_id):
-    """Delete schedule"""
     center = Center.query.filter_by(user_id=session['user_id']).first()
     
     schedule = Schedule.query.join(Program).filter(
@@ -1097,12 +1028,9 @@ def delete_schedule(schedule_id):
     
     return redirect(url_for('center_schedules'))
 
-# TEACHER SCHEDULE ROUTES (keep existing)
-
 @app.route('/teacher/schedule')
 @login_required(role='teacher')
 def teacher_schedule():
-    """Teacher schedule view"""
     teacher = Teacher.query.filter_by(user_id=session['user_id']).first()
     
     schedules = Schedule.query.filter_by(
@@ -1126,7 +1054,6 @@ def teacher_schedule():
 @app.route('/teacher/students')
 @login_required(role='teacher')
 def teacher_students():
-    """Teacher's student list"""
     teacher = Teacher.query.filter_by(user_id=session['user_id']).first()
     
     enrollments = Enrollment.query.join(Schedule).filter(
@@ -1153,7 +1080,6 @@ def teacher_students():
 
 @app.route('/admin/geocode-centers')
 def geocode_existing_centers():
-    """Utility function to geocode existing centers without coordinates"""
     if not app.debug:
         return "This function is only available in debug mode", 403
     
@@ -1176,9 +1102,7 @@ def geocode_existing_centers():
     else:
         return "No centers updated"
 
-# Initialize default categories
 def init_default_categories():
-    """Initialize default categories if none exist"""
     if Category.query.count() == 0:
         sports = Category(name='Sports', description='Physical activities and sports programs', icon='bi-trophy', color='#28a745')
         arts = Category(name='Arts & Crafts', description='Creative and artistic programs', icon='bi-palette', color='#6f42c1')
@@ -1211,15 +1135,12 @@ def init_default_categories():
 @app.route('/center/enrollments')
 @login_required(role='center')
 def center_enrollments():
-    """View center enrollments"""
     center = Center.query.filter_by(user_id=session['user_id']).first()
     
-    # Get all enrollments for this center's programs
     enrollments = db.session.query(Enrollment).join(Schedule).join(Program).filter(
         Program.center_id == center.id
     ).order_by(Enrollment.created_at.desc()).all() if center else []
     
-    # Group by status
     active_enrollments = [e for e in enrollments if e.status == 'active']
     pending_enrollments = [e for e in enrollments if e.status == 'pending']
     cancelled_enrollments = [e for e in enrollments if e.status == 'cancelled']
@@ -1233,7 +1154,6 @@ def center_enrollments():
 @app.route('/center/enrollment/<int:enrollment_id>/approve', methods=['POST'])
 @login_required(role='center')
 def approve_enrollment(enrollment_id):
-    """Approve a pending enrollment"""
     center = Center.query.filter_by(user_id=session['user_id']).first()
     enrollment = db.session.query(Enrollment).join(Schedule).join(Program).filter(
         Enrollment.id == enrollment_id,
@@ -1260,10 +1180,8 @@ def approve_enrollment(enrollment_id):
 @app.route('/parent/enrollments')
 @login_required(role='parent')
 def parent_enrollments():
-    """View parent's children enrollments"""
     parent = Parent.query.filter_by(user_id=session['user_id']).first()
     
-    # Get all enrollments for parent's children
     enrollments = db.session.query(Enrollment).join(Child).filter(
         Child.parent_id == parent.id
     ).order_by(Enrollment.created_at.desc()).all() if parent else []
@@ -1272,11 +1190,9 @@ def parent_enrollments():
                          parent=parent,
                          enrollments=enrollments)
 
-# Enhanced API endpoints
 @app.route('/api/child/<int:child_id>/enrollments')
 @login_required(role='parent')
 def api_child_enrollments(child_id):
-    """Get enrollments for a specific child"""
     parent = Parent.query.filter_by(user_id=session['user_id']).first()
     child = Child.query.filter_by(id=child_id, parent_id=parent.id).first()
     
@@ -1301,10 +1217,8 @@ def api_child_enrollments(child_id):
 
 @app.route('/api/center/<int:center_id>/stats')
 def api_center_stats(center_id):
-    """Get center statistics"""
     center = Center.query.get_or_404(center_id)
     
-    # Calculate stats
     total_programs = Program.query.filter_by(center_id=center.id, is_active=True).count()
     total_teachers = Teacher.query.filter_by(center_id=center.id).count()
     total_students = db.session.query(Enrollment).join(Schedule).join(Program).filter(
@@ -1312,7 +1226,6 @@ def api_center_stats(center_id):
         Enrollment.status == 'active'
     ).count()
     
-    # Get recent enrollments
     recent_enrollments = db.session.query(Enrollment).join(Schedule).join(Program).filter(
         Program.center_id == center.id
     ).order_by(Enrollment.created_at.desc()).limit(5).all()
@@ -1333,35 +1246,27 @@ def api_center_stats(center_id):
         'recent_enrollments': recent_data
     })
 
-# Add these routes to your existing app.py file
-
-# CENTER PROFILE MANAGEMENT
 @app.route('/center/profile', methods=['GET', 'POST'])
 @login_required(role='center')
 def center_profile():
-    """Center profile management"""
     center = Center.query.filter_by(user_id=session['user_id']).first()
     
     if request.method == 'POST':
-        # Update center information
         center.center_name = request.form.get('center_name')
         center.description = request.form.get('description')
         center.address = request.form.get('address')
         center.website = request.form.get('website')
         center.schedule_info = request.form.get('schedule_info')
         
-        # Update user information
         center.user.name = request.form.get('name')
         center.user.email = request.form.get('email')
         center.user.phone = request.form.get('phone')
         
-        # Handle photo upload
         if 'photo' in request.files:
             file = request.files['photo']
             if file and file.filename:
                 center.photo_url = save_uploaded_file(file, 'centers')
         
-        # Re-geocode if address changed
         if request.form.get('address') != center.address:
             geocoding_service = GeocodingService()
             coordinates = geocoding_service.geocode_address(center.address, "Astana", "Kazakhstan")
@@ -1382,7 +1287,6 @@ def center_profile():
 @app.route('/center/regenerate-invite-code', methods=['POST'])
 @login_required(role='center')
 def regenerate_invite_code():
-    """Regenerate teacher invite code"""
     center = Center.query.filter_by(user_id=session['user_id']).first()
     
     try:
@@ -1398,11 +1302,9 @@ def regenerate_invite_code():
         db.session.rollback()
         return jsonify({'success': False}), 500
 
-# CENTER TEACHER MANAGEMENT
 @app.route('/center/teachers')
 @login_required(role='center')
 def center_teachers():
-    """Center teacher management"""
     center = Center.query.filter_by(user_id=session['user_id']).first()
     teachers = Teacher.query.filter_by(center_id=center.id).all() if center else []
     
@@ -1411,14 +1313,12 @@ def center_teachers():
 @app.route('/center/teacher/<int:teacher_id>/details')
 @login_required(role='center')
 def teacher_details_api(teacher_id):
-    """Get teacher details for modal"""
     center = Center.query.filter_by(user_id=session['user_id']).first()
     teacher = Teacher.query.filter_by(id=teacher_id, center_id=center.id).first()
     
     if not teacher:
         return jsonify({'success': False}), 404
     
-    # Get teacher's schedules and students
     schedules = Schedule.query.filter_by(teacher_id=teacher.id).all()
     total_students = 0
     for schedule in schedules:
@@ -1476,7 +1376,6 @@ def teacher_details_api(teacher_id):
 @app.route('/center/teacher/<int:teacher_id>/remove', methods=['POST'])
 @login_required(role='center')
 def remove_teacher(teacher_id):
-    """Remove teacher from center"""
     center = Center.query.filter_by(user_id=session['user_id']).first()
     teacher = Teacher.query.filter_by(id=teacher_id, center_id=center.id).first()
     
@@ -1484,7 +1383,6 @@ def remove_teacher(teacher_id):
         return jsonify({'error': 'Teacher not found'}), 404
     
     try:
-        # Check for active schedules
         active_schedules = Schedule.query.filter_by(teacher_id=teacher.id, is_active=True).count()
         if active_schedules > 0:
             return jsonify({
@@ -1493,10 +1391,8 @@ def remove_teacher(teacher_id):
         
         teacher_name = teacher.user.name
         
-        # Remove all schedules for this teacher
         Schedule.query.filter_by(teacher_id=teacher.id).delete()
         
-        # Remove teacher record
         db.session.delete(teacher)
         db.session.commit()
         
@@ -1509,35 +1405,29 @@ def remove_teacher(teacher_id):
         db.session.rollback()
         return jsonify({'error': 'Failed to remove teacher'}), 500
 
-# ENHANCED ENROLLMENT SYSTEM
 @app.route('/api/child/<int:child_id>/available-programs')
 @login_required(role='parent')
 def get_available_programs_for_child(child_id):
-    """Enhanced API to get available programs for a child"""
     parent = Parent.query.filter_by(user_id=session['user_id']).first()
     child = Child.query.filter_by(id=child_id, parent_id=parent.id).first()
     
     if not child:
         return jsonify({'error': 'Child not found'}), 404
     
-    # Get child's age
     child_age = None
     if child.birth_date:
         from datetime import date
         child_age = date.today().year - child.birth_date.year
     
-    # Get all active schedules with available spots
     schedules = Schedule.query.filter_by(is_active=True).all()
     
     available_programs = []
     processed_programs = set()
     
     for schedule in schedules:
-        # Skip if program already processed
         if schedule.program.id in processed_programs:
             continue
         
-        # Check if already enrolled
         existing = Enrollment.query.filter_by(
             child_id=child_id,
             schedule_id=schedule.id,
@@ -1547,14 +1437,12 @@ def get_available_programs_for_child(child_id):
         if existing:
             continue
         
-        # Check age requirements
         if child_age:
             if schedule.program.min_age and child_age < schedule.program.min_age:
                 continue
             if schedule.program.max_age and child_age > schedule.program.max_age:
                 continue
         
-        # Check capacity
         current_enrollments = Enrollment.query.filter_by(
             schedule_id=schedule.id,
             status='active'
@@ -1563,13 +1451,11 @@ def get_available_programs_for_child(child_id):
         if current_enrollments >= schedule.max_students:
             continue
         
-        # Get all schedules for this program
         program_schedules = Schedule.query.filter_by(
             program_id=schedule.program.id,
             is_active=True
         ).all()
         
-        # Filter schedules with available spots
         available_schedules = []
         for prog_schedule in program_schedules:
             current_count = Enrollment.query.filter_by(
@@ -1613,7 +1499,6 @@ def get_available_programs_for_child(child_id):
 @app.route('/api/enroll', methods=['POST'])
 @login_required(role='parent')
 def api_enroll_child():
-    """Enhanced enrollment API"""
     data = request.get_json()
     child_id = data.get('child_id')
     schedule_id = data.get('schedule_id')
@@ -1628,7 +1513,6 @@ def api_enroll_child():
     if not schedule:
         return jsonify({'error': 'Schedule not found'}), 404
     
-    # Check if already enrolled
     existing = Enrollment.query.filter_by(
         child_id=child_id,
         schedule_id=schedule_id,
@@ -1638,7 +1522,6 @@ def api_enroll_child():
     if existing:
         return jsonify({'error': 'Child is already enrolled or has a pending enrollment in this class'}), 400
     
-    # Check age requirements
     if child.birth_date:
         child_age = date.today().year - child.birth_date.year
         if schedule.program.min_age and child_age < schedule.program.min_age:
@@ -1646,7 +1529,6 @@ def api_enroll_child():
         if schedule.program.max_age and child_age > schedule.program.max_age:
             return jsonify({'error': f'Child is too old for this program (maximum age: {schedule.program.max_age})'}), 400
     
-    # Check capacity
     current_enrollments = Enrollment.query.filter_by(
         schedule_id=schedule_id,
         status__in=['active', 'pending']
@@ -1655,12 +1537,11 @@ def api_enroll_child():
     if current_enrollments >= schedule.max_students:
         return jsonify({'error': 'Class is full'}), 400
     
-    # Create enrollment
     try:
         enrollment = Enrollment(
             child_id=child_id,
             schedule_id=schedule_id,
-            status='pending',  # Require center approval
+            status='pending',  
             created_by=session['user_id'],
             monthly_fee=schedule.program.price_per_month,
             session_fee=schedule.program.price_per_session
@@ -1678,14 +1559,12 @@ def api_enroll_child():
         db.session.rollback()
         return jsonify({'error': 'Enrollment failed. Please try again.'}), 500
 
-# TEACHER API ENDPOINTS
 @app.route('/teacher/student/<int:child_id>/details')
 @login_required(role='teacher')
 def student_details_api(child_id):
     """Get student details for teacher"""
     teacher = Teacher.query.filter_by(user_id=session['user_id']).first()
     
-    # Check if teacher has access to this student
     enrollment = Enrollment.query.join(Schedule).filter(
         Schedule.teacher_id == teacher.id,
         Enrollment.child_id == child_id,
@@ -1723,8 +1602,6 @@ def student_details_api(child_id):
             {child.notes}
         </div>
         """
-    
-    # Add attendance summary
     attendance_records = enrollment.attendance_records
     if attendance_records:
         present_count = len([a for a in attendance_records if a.status == 'present'])
@@ -1767,14 +1644,12 @@ def student_details_api(child_id):
 @app.route('/teacher/parent/<int:parent_id>/contact')
 @login_required(role='teacher')
 def parent_contact_api(parent_id):
-    """Get parent contact information"""
     teacher = Teacher.query.filter_by(user_id=session['user_id']).first()
     parent = Parent.query.get(parent_id)
     
     if not parent:
         return jsonify({'success': False}), 404
     
-    # Verify teacher has access to this parent's children
     has_access = False
     for child in parent.children:
         enrollment = Enrollment.query.join(Schedule).filter(
@@ -1842,7 +1717,6 @@ def parent_contact_api(parent_id):
 @app.route('/teacher/attendance/mark', methods=['POST'])
 @login_required(role='teacher')
 def mark_attendance():
-    """Mark student attendance"""
     teacher = Teacher.query.filter_by(user_id=session['user_id']).first()
     data = request.get_json()
     
@@ -1851,7 +1725,6 @@ def mark_attendance():
     status = data.get('status')
     notes = data.get('notes', '')
     
-    # Verify teacher has access to this enrollment
     enrollment = Enrollment.query.join(Schedule).filter(
         Schedule.teacher_id == teacher.id,
         Enrollment.id == enrollment_id,
@@ -1861,7 +1734,6 @@ def mark_attendance():
     if not enrollment:
         return jsonify({'error': 'Enrollment not found or access denied'}), 404
     
-    # Check if attendance already exists for this date
     existing = Attendance.query.filter_by(
         enrollment_id=enrollment_id,
         class_date=attendance_date
@@ -1887,7 +1759,6 @@ def mark_attendance():
         db.session.rollback()
         return jsonify({'error': 'Failed to mark attendance'}), 500
 
-# PROGRAM DETAIL VIEW
 @app.route('/program/<int:program_id>')
 def view_program(program_id):
     """Public program detail view"""
@@ -1896,10 +1767,8 @@ def view_program(program_id):
         flash('This program is currently not available.', 'warning')
         return redirect(url_for('index'))
     
-    # Get available schedules
     schedules = Schedule.query.filter_by(program_id=program.id, is_active=True).all()
     
-    # Calculate availability for each schedule
     schedule_availability = []
     for schedule in schedules:
         current_enrollments = Enrollment.query.filter_by(
@@ -1917,7 +1786,6 @@ def view_program(program_id):
                          program=program, 
                          schedule_availability=schedule_availability)
 
-# ENHANCED CENTER VIEW
 @app.route('/center/<int:center_id>')
 def view_center(center_id):
     """Enhanced public center profile view"""
@@ -1925,20 +1793,16 @@ def view_center(center_id):
     programs = Program.query.filter_by(center_id=center.id, is_active=True).all()
     teachers = Teacher.query.filter_by(center_id=center.id).all()
     
-    # Calculate statistics
     active_schedules_count = 0
     unique_categories = set()
     total_students = 0
     
     for program in programs:
-        # Count active schedules
         for schedule in program.schedules:
             if schedule.is_active:
                 active_schedules_count += 1
-                # Count enrolled students
                 total_students += len([e for e in schedule.enrollments if e.status == 'active'])
         
-        # Collect unique categories
         unique_categories.add(program.category.id)
     
     stats = {
@@ -1955,20 +1819,16 @@ def view_center(center_id):
                          teachers=teachers,
                          stats=stats)
 
-# Add these additional routes to your app.py file
 
 @app.route('/api/program/<int:program_id>/details')
 def api_program_details(program_id):
-    """Get program details for modal view"""
     program = Program.query.get_or_404(program_id)
     
     if not program.is_active:
         return jsonify({'success': False, 'error': 'Program not available'}), 404
     
-    # Get available schedules
     schedules = Schedule.query.filter_by(program_id=program.id, is_active=True).all()
     
-    # Calculate availability for each schedule
     schedule_data = []
     for schedule in schedules:
         current_enrollments = Enrollment.query.filter_by(
@@ -2082,12 +1942,9 @@ def api_program_details(program_id):
 @app.route('/teacher/class/export')
 @login_required(role='teacher')
 def export_class_list():
-    """Export class student list"""
     teacher = Teacher.query.filter_by(user_id=session['user_id']).first()
     class_name = request.args.get('class', '')
     
-    # Find the schedule based on class name format
-    # Class name format: "Program Name - Day Time"
     schedules = Schedule.query.filter_by(teacher_id=teacher.id, is_active=True).all()
     target_schedule = None
     
@@ -2101,26 +1958,22 @@ def export_class_list():
         flash('Class not found.', 'danger')
         return redirect(url_for('teacher_students'))
     
-    # Get enrollments for this schedule
     enrollments = Enrollment.query.filter_by(
         schedule_id=target_schedule.id,
         status='active'
     ).all()
     
-    # Create CSV content
     import io
     import csv
     
     output = io.StringIO()
     writer = csv.writer(output)
     
-    # Write header
     writer.writerow([
         'Student Name', 'Age', 'Grade', 'Parent Name', 'Parent Email', 
         'Parent Phone', 'Enrollment Date', 'Notes'
     ])
     
-    # Write student data
     for enrollment in enrollments:
         child = enrollment.child
         parent = child.parent
@@ -2136,7 +1989,6 @@ def export_class_list():
             child.notes or 'N/A'
         ])
     
-    # Prepare response
     output.seek(0)
     
     from flask import make_response
@@ -2146,11 +1998,9 @@ def export_class_list():
     
     return response
 
-# IMPROVED ENROLLMENT STATUS HANDLING
 @app.route('/enrollment/<int:enrollment_id>/cancel', methods=['POST'])
 @login_required()
 def cancel_enrollment(enrollment_id):
-    """Cancel an enrollment - accessible by parent or center"""
     user_role = session.get('user_role')
     
     if user_role == 'parent':
@@ -2184,11 +2034,8 @@ def cancel_enrollment(enrollment_id):
         db.session.rollback()
         return jsonify({'error': 'Failed to cancel enrollment'}), 500
 
-# ENHANCED SEARCH AND FILTERING
 @app.route('/api/centers/search')
 def api_centers_search():
-    """Advanced center search with multiple filters"""
-    # Get search parameters
     query = request.args.get('q', '').strip()
     category_id = request.args.get('category_id')
     min_age = request.args.get('min_age', type=int)
@@ -2198,10 +2045,8 @@ def api_centers_search():
     lng = request.args.get('lng', type=float)
     max_distance = request.args.get('max_distance', type=float, default=10.0)  # km
     
-    # Base query
     centers_query = Center.query.filter(Center.latitude.isnot(None), Center.longitude.isnot(None))
     
-    # Apply filters
     if query:
         centers_query = centers_query.filter(
             Center.center_name.contains(query) |
@@ -2211,14 +2056,12 @@ def api_centers_search():
     
     centers = centers_query.all()
     
-    # Filter by programs if category specified
     if category_id:
         centers = [c for c in centers if any(
             p.category_id == int(category_id) and p.is_active 
             for p in c.programs
         )]
     
-    # Filter by age requirements
     if min_age is not None or max_age is not None:
         filtered_centers = []
         for center in centers:
@@ -2231,7 +2074,6 @@ def api_centers_search():
                 program_max = program.max_age or 100
                 
                 if min_age is not None and max_age is not None:
-                    # Check if age range overlaps
                     if not (program_max < min_age or program_min > max_age):
                         has_suitable_program = True
                         break
@@ -2249,7 +2091,6 @@ def api_centers_search():
         
         centers = filtered_centers
     
-    # Filter by price
     if max_price is not None:
         filtered_centers = []
         for center in centers:
@@ -2268,7 +2109,6 @@ def api_centers_search():
         
         centers = filtered_centers
     
-    # Filter by distance
     if lat is not None and lng is not None:
         geocoding_service = GeocodingService()
         centers_with_distance = []
@@ -2281,11 +2121,9 @@ def api_centers_search():
                     'distance': distance
                 })
         
-        # Sort by distance
         centers_with_distance.sort(key=lambda x: x['distance'])
         centers = [item['center'] for item in centers_with_distance]
     
-    # Format response
     centers_data = []
     for center in centers:
         programs = [p for p in center.programs if p.is_active]
@@ -2312,7 +2150,7 @@ def api_centers_search():
                     'age_range': program.get_age_range(),
                     'available_schedules': len([s for s in program.schedules if s.is_active])
                 }
-                for program in programs[:5]  # Limit to first 5 programs
+                for program in programs[:5]  
             ]
         }
         centers_data.append(center_data)
@@ -2331,15 +2169,11 @@ def api_centers_search():
         }
     })
 
-# SYSTEM UTILITIES
 @app.route('/api/system/health')
 def system_health():
-    """System health check"""
     try:
-        # Test database connection
         db.session.execute('SELECT 1')
         
-        # Get basic stats
         total_users = User.query.count()
         total_centers = Center.query.count()
         total_programs = Program.query.count()
@@ -2366,7 +2200,6 @@ def system_health():
 @app.route('/api/enroll', methods=['POST'])
 @login_required(role='parent')
 def api_enroll_child_fixed():
-    """Fixed enrollment API with proper SQLAlchemy syntax"""
     data = request.get_json()
     child_id = data.get('child_id')
     schedule_id = data.get('schedule_id')
@@ -2381,7 +2214,6 @@ def api_enroll_child_fixed():
     if not schedule:
         return jsonify({'error': 'Schedule not found'}), 404
     
-    # Check if already enrolled (fixed syntax)
     existing = Enrollment.query.filter_by(
         child_id=child_id,
         schedule_id=schedule_id
@@ -2390,7 +2222,6 @@ def api_enroll_child_fixed():
     if existing:
         return jsonify({'error': 'Child is already enrolled or has a pending enrollment in this class'}), 400
     
-    # Check age requirements
     if child.birth_date:
         from datetime import date
         child_age = date.today().year - child.birth_date.year
@@ -2399,7 +2230,6 @@ def api_enroll_child_fixed():
         if schedule.program.max_age and child_age > schedule.program.max_age:
             return jsonify({'error': f'Child is too old for this program (maximum age: {schedule.program.max_age})'}), 400
     
-    # Check capacity (fixed syntax)
     current_enrollments = Enrollment.query.filter_by(
         schedule_id=schedule_id
     ).filter(Enrollment.status.in_(['active', 'pending'])).count()
@@ -2407,12 +2237,11 @@ def api_enroll_child_fixed():
     if current_enrollments >= schedule.max_students:
         return jsonify({'error': 'Class is full'}), 400
     
-    # Create enrollment
     try:
         enrollment = Enrollment(
             child_id=child_id,
             schedule_id=schedule_id,
-            status='pending',  # Require center approval
+            status='pending', 
             created_by=session['user_id'],
             monthly_fee=schedule.program.price_per_month,
             session_fee=schedule.program.price_per_session
@@ -2433,31 +2262,26 @@ def api_enroll_child_fixed():
 @app.route('/api/child/<int:child_id>/available-programs')
 @login_required(role='parent')
 def get_available_programs_for_child_fixed(child_id):
-    """Fixed API to get available programs for a child"""
     parent = Parent.query.filter_by(user_id=session['user_id']).first()
     child = Child.query.filter_by(id=child_id, parent_id=parent.id).first()
     
     if not child:
         return jsonify({'error': 'Child not found'}), 404
     
-    # Get child's age
     child_age = None
     if child.birth_date:
         from datetime import date
         child_age = date.today().year - child.birth_date.year
     
-    # Get all active schedules with available spots
     schedules = Schedule.query.filter_by(is_active=True).all()
     
     available_programs = []
     processed_programs = set()
     
     for schedule in schedules:
-        # Skip if program already processed
         if schedule.program.id in processed_programs:
             continue
         
-        # Check if already enrolled (fixed syntax)
         existing = Enrollment.query.filter_by(
             child_id=child_id,
             schedule_id=schedule.id
@@ -2466,14 +2290,12 @@ def get_available_programs_for_child_fixed(child_id):
         if existing:
             continue
         
-        # Check age requirements
         if child_age:
             if schedule.program.min_age and child_age < schedule.program.min_age:
                 continue
             if schedule.program.max_age and child_age > schedule.program.max_age:
                 continue
         
-        # Check capacity (fixed syntax)
         current_enrollments = Enrollment.query.filter_by(
             schedule_id=schedule.id
         ).filter(Enrollment.status.in_(['active', 'pending'])).count()
@@ -2481,13 +2303,11 @@ def get_available_programs_for_child_fixed(child_id):
         if current_enrollments >= schedule.max_students:
             continue
         
-        # Get all schedules for this program
         program_schedules = Schedule.query.filter_by(
             program_id=schedule.program.id,
             is_active=True
         ).all()
         
-        # Filter schedules with available spots
         available_schedules = []
         for prog_schedule in program_schedules:
             current_count = Enrollment.query.filter_by(
@@ -2527,7 +2347,6 @@ def get_available_programs_for_child_fixed(child_id):
     
     return jsonify({'programs': available_programs})
 
-# Add error handlers
 @app.errorhandler(404)
 def not_found_error(error):
     return render_template('errors/404.html'), 404
@@ -2541,75 +2360,11 @@ def internal_error(error):
 def forbidden_error(error):
     return render_template('errors/403.html'), 403
 
-# Add utility function to create demo data (optional)
-@app.route('/admin/create-demo-data')
-def create_demo_data():
-    """Create demo data for testing (only in debug mode)"""
-    if not app.debug:
-        return "This function is only available in debug mode", 403
-    
-    try:
-        # Create demo categories if they don't exist
-        if Category.query.count() == 0:
-            init_default_categories()
-        
-        # Create demo center
-        demo_center_user = User.query.filter_by(email='demo@center.com').first()
-        if not demo_center_user:
-            demo_center_user = User(
-                email='demo@center.com',
-                password_hash=generate_password_hash('demo123'),
-                name='Demo Center Admin',
-                phone='+7 701 234 5678',
-                role='center'
-            )
-            db.session.add(demo_center_user)
-            db.session.flush()
-            
-            demo_center = Center(
-                user_id=demo_center_user.id,
-                center_name='Astana Kids Academy',
-                description='Premium education center offering diverse programs for children and teenagers.',
-                address='Nur-Sultan, Yessil District, Mangilik El Avenue 53',
-                latitude=51.1282,
-                longitude=51.4306
-            )
-            db.session.add(demo_center)
-        
-        # Create demo parent
-        demo_parent_user = User.query.filter_by(email='parent@demo.com').first()
-        if not demo_parent_user:
-            demo_parent_user = User(
-                email='parent@demo.com',
-                password_hash=generate_password_hash('demo123'),
-                name='Demo Parent',
-                phone='+7 701 987 6543',
-                role='parent'
-            )
-            db.session.add(demo_parent_user)
-            db.session.flush()
-            
-            demo_parent = Parent(
-                user_id=demo_parent_user.id,
-                address='Nur-Sultan, Yessil District, Turan Avenue 37'
-            )
-            db.session.add(demo_parent)
-        
-        db.session.commit()
-        return "Demo data created successfully! Use demo@center.com / demo123 or parent@demo.com / demo123 to login."
-        
-    except Exception as e:
-        db.session.rollback()
-        return f"Error creating demo data: {str(e)}", 500
-
-# Add a route to handle enrollment from program detail page
 @app.route('/enroll-from-program/<int:program_id>')
 @login_required(role='parent')
 def enroll_from_program(program_id):
-    """Redirect to parent dashboard with program pre-selected for enrollment"""
     program = Program.query.get_or_404(program_id)
     
-    # Get first available schedule for this program
     schedule = Schedule.query.filter_by(program_id=program_id, is_active=True).first()
     
     if schedule:
@@ -2618,7 +2373,6 @@ def enroll_from_program(program_id):
         flash('No available class schedules for this program.', 'warning')
         return redirect(url_for('view_program', program_id=program_id))
 
-# Initialize database tables
 def create_tables():
     """Create database tables"""
     with app.app_context():

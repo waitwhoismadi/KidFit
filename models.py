@@ -3,13 +3,12 @@ from datetime import datetime, time, date
 import secrets
 
 class User(db.Model):
-    """Base user model for all user types"""
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(20))
-    role = db.Column(db.String(20), nullable=False)  # 'parent', 'center', 'teacher'
+    role = db.Column(db.String(20), nullable=False)  
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -148,7 +147,6 @@ class Category(db.Model):
         return f'<Category {self.get_full_path()}>'
 
 class Program(db.Model):
-    """Educational programs offered by centers"""
     id = db.Column(db.Integer, primary_key=True)
     center_id = db.Column(db.Integer, db.ForeignKey('center.id'), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
@@ -156,33 +154,27 @@ class Program(db.Model):
     description = db.Column(db.Text)
     short_description = db.Column(db.String(255))
     
-    # Program details
     price_per_month = db.Column(db.Float)
     price_per_session = db.Column(db.Float)
-    duration_minutes = db.Column(db.Integer)  # Duration of each session
+    duration_minutes = db.Column(db.Integer) 
     min_age = db.Column(db.Integer)
     max_age = db.Column(db.Integer)
     max_students = db.Column(db.Integer, default=20)
     
-    # Program status
     is_active = db.Column(db.Boolean, default=True)
     is_featured = db.Column(db.Boolean, default=False)
     
-    # Additional info
-    requirements = db.Column(db.Text)  # What students need to bring/know
-    benefits = db.Column(db.Text)     # What students will learn/gain
+    requirements = db.Column(db.Text)  
+    benefits = db.Column(db.Text)    
     photo_url = db.Column(db.String(255))
     
-    # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationships
     center = db.relationship('Center', backref=db.backref('programs', lazy=True))
     category = db.relationship('Category', backref=db.backref('programs', lazy=True))
     
     def get_age_range(self):
-        """Get formatted age range string"""
         if self.min_age and self.max_age:
             return f"{self.min_age}-{self.max_age} years"
         elif self.min_age:
@@ -192,7 +184,6 @@ class Program(db.Model):
         return "All ages"
     
     def get_price_display(self):
-        """Get formatted price string"""
         prices = []
         if self.price_per_month:
             prices.append(f"{self.price_per_month:,.0f}₸/month")
@@ -201,7 +192,6 @@ class Program(db.Model):
         return " or ".join(prices) if prices else "Contact for pricing"
     
     def get_available_spots(self):
-        """Get number of available spots across all schedules"""
         total_spots = 0
         taken_spots = 0
         
@@ -216,88 +206,71 @@ class Program(db.Model):
         return f'<Program {self.name} at {self.center.center_name}>'
 
 class Schedule(db.Model):
-    """Scheduled classes for programs"""
     id = db.Column(db.Integer, primary_key=True)
     program_id = db.Column(db.Integer, db.ForeignKey('program.id'), nullable=False)
     teacher_id = db.Column(db.Integer, db.ForeignKey('teacher.id'), nullable=False)
     
-    # Schedule details
-    day_of_week = db.Column(db.Integer, nullable=False)  # 0=Monday, 6=Sunday
+    day_of_week = db.Column(db.Integer, nullable=False)  
     start_time = db.Column(db.Time, nullable=False)
     end_time = db.Column(db.Time, nullable=False)
     
-    # Class details
     max_students = db.Column(db.Integer, default=20)
-    room_name = db.Column(db.String(100))  # Optional room/location info
-    notes = db.Column(db.Text)  # Additional notes about the class
+    room_name = db.Column(db.String(100)) 
+    notes = db.Column(db.Text)  
     
-    # Status
     is_active = db.Column(db.Boolean, default=True)
-    start_date = db.Column(db.Date, default=datetime.utcnow().date)  # When this schedule starts
-    end_date = db.Column(db.Date)  # Optional end date for temporary schedules
-    
-    # Timestamps
+    start_date = db.Column(db.Date, default=datetime.utcnow().date)  
+    end_date = db.Column(db.Date)  
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationships
     program = db.relationship('Program', backref=db.backref('schedules', lazy=True))
     teacher = db.relationship('Teacher', backref=db.backref('schedules', lazy=True))
     
     def get_day_name(self):
-        """Get day name from day_of_week number"""
         days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
         return days[self.day_of_week]
     
     def get_time_range(self):
-        """Get formatted time range"""
         return f"{self.start_time.strftime('%H:%M')} - {self.end_time.strftime('%H:%M')}"
     
     def get_duration_minutes(self):
-        """Calculate class duration in minutes"""
         start_minutes = self.start_time.hour * 60 + self.start_time.minute
         end_minutes = self.end_time.hour * 60 + self.end_time.minute
         return end_minutes - start_minutes
     
     def conflicts_with(self, other_schedule):
-        """Check if this schedule conflicts with another schedule"""
         if self.day_of_week != other_schedule.day_of_week:
             return False
         if self.teacher_id != other_schedule.teacher_id:
             return False
         
-        # Check time overlap
         return not (self.end_time <= other_schedule.start_time or 
                    self.start_time >= other_schedule.end_time)
     
     def get_enrollment_count(self):
-        """Get number of active enrollments"""
         return len([e for e in self.enrollments if e.status == 'active'])
     
     def get_available_spots(self):
-        """Get number of available spots"""
         return max(0, self.max_students - self.get_enrollment_count())
     
     def is_full(self):
-        """Check if class is at capacity"""
         return self.get_enrollment_count() >= self.max_students
     
     def __repr__(self):
         return f'<Schedule {self.program.name} - {self.get_day_name()} {self.get_time_range()}>'
 
 class Enrollment(db.Model):
-    """Student enrollments in scheduled classes"""
     id = db.Column(db.Integer, primary_key=True)
     child_id = db.Column(db.Integer, db.ForeignKey('child.id'), nullable=False)
     schedule_id = db.Column(db.Integer, db.ForeignKey('schedule.id'), nullable=False)
     
-    # Enrollment details
     enrollment_date = db.Column(db.Date, default=date.today)
     start_date = db.Column(db.Date, default=date.today)
     end_date = db.Column(db.Date)  # Optional end date
     status = db.Column(db.String(20), default='active')  # active, paused, cancelled, completed
     
-    # Payment info (basic)
     payment_method = db.Column(db.String(50))  # monthly, per_session, etc.
     monthly_fee = db.Column(db.Float)
     session_fee = db.Column(db.Float)
@@ -305,10 +278,9 @@ class Enrollment(db.Model):
     outstanding_balance = db.Column(db.Float, default=0.0)
     next_payment_due = db.Column(db.Date)
     
-    # Administrative
     notes = db.Column(db.Text)
-    created_by = db.Column(db.Integer, db.ForeignKey('user.id'))  # Who created this enrollment
-    approved_by = db.Column(db.Integer, db.ForeignKey('user.id'))  # Who approved this enrollment
+    created_by = db.Column(db.Integer, db.ForeignKey('user.id'))  
+    approved_by = db.Column(db.Integer, db.ForeignKey('user.id'))  
     approved_at = db.Column(db.DateTime)
     
     # Timestamps
@@ -359,7 +331,6 @@ class Enrollment(db.Model):
         return status_map.get(self.status, self.status.title())
     
     def get_status_badge_class(self):
-        """Get Bootstrap badge class for status"""
         status_classes = {
             'active': 'bg-success',
             'paused': 'bg-warning',
@@ -372,20 +343,16 @@ class Enrollment(db.Model):
         return f'<Enrollment {self.child.name} in {self.schedule.program.name}>'
 
 class Attendance(db.Model):
-    """Attendance tracking for individual classes"""
     id = db.Column(db.Integer, primary_key=True)
     enrollment_id = db.Column(db.Integer, db.ForeignKey('enrollment.id'), nullable=False)
     class_date = db.Column(db.Date, nullable=False)
     
-    # Attendance status
-    status = db.Column(db.String(20), default='present')  # present, absent, late, excused
-    notes = db.Column(db.Text)  # Optional notes from teacher
+    status = db.Column(db.String(20), default='present')  
+    notes = db.Column(db.Text)  
     
-    # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationships
     enrollment = db.relationship('Enrollment', backref=db.backref('attendance_records', lazy=True))
     
     def get_status_display(self):
@@ -399,7 +366,6 @@ class Attendance(db.Model):
         return status_map.get(self.status, self.status.title())
     
     def get_status_badge_class(self):
-        """Get Bootstrap badge class for attendance status"""
         status_classes = {
             'present': 'bg-success',
             'absent': 'bg-danger',
@@ -411,23 +377,19 @@ class Attendance(db.Model):
     def __repr__(self):
         return f'<Attendance {self.enrollment.child.name} - {self.class_date} ({self.status})>'
 
-# Additional helper model for notifications (optional)
 class Notification(db.Model):
-    """System notifications for users"""
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     title = db.Column(db.String(200), nullable=False)
     message = db.Column(db.Text, nullable=False)
-    type = db.Column(db.String(50), default='info')  # info, warning, success, error
+    type = db.Column(db.String(50), default='info')  
     is_read = db.Column(db.Boolean, default=False)
-    action_url = db.Column(db.String(255))  # Optional URL for action
+    action_url = db.Column(db.String(255))  
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Relationship
     user = db.relationship('User', backref=db.backref('notifications', lazy=True))
     
     def get_type_icon(self):
-        """Get Bootstrap icon for notification type"""
         type_icons = {
             'info': 'bi-info-circle',
             'warning': 'bi-exclamation-triangle',
@@ -437,7 +399,6 @@ class Notification(db.Model):
         return type_icons.get(self.type, 'bi-bell')
     
     def get_type_class(self):
-        """Get Bootstrap class for notification type"""
         type_classes = {
             'info': 'text-info',
             'warning': 'text-warning',
