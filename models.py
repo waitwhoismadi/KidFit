@@ -17,32 +17,28 @@ class User(db.Model):
         return f'<User {self.email} ({self.role})>'
 
 class Parent(db.Model):
-    """Parent-specific information"""
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     address = db.Column(db.String(200))
     
-    # Relationship
     user = db.relationship('User', backref=db.backref('parent_profile', uselist=False))
     
     def __repr__(self):
         return f'<Parent {self.user.name}>'
 
 class Center(db.Model):
-    """Education center information"""
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     center_name = db.Column(db.String(150), nullable=False)
     description = db.Column(db.Text)
     address = db.Column(db.String(200), nullable=False)
-    latitude = db.Column(db.Float)  # Will be populated via geocoding
-    longitude = db.Column(db.Float)  # Will be populated via geocoding
+    latitude = db.Column(db.Float) 
+    longitude = db.Column(db.Float) 
     photo_url = db.Column(db.String(255))
     website = db.Column(db.String(255))
-    schedule_info = db.Column(db.Text)  # General schedule information
-    invite_code = db.Column(db.String(8), unique=True)  # For teacher invitations
+    schedule_info = db.Column(db.Text)  
+    invite_code = db.Column(db.String(8), unique=True)  
     
-    # Relationship
     user = db.relationship('User', backref=db.backref('center_profile', uselist=False))
 
     def __init__(self, **kwargs):
@@ -51,9 +47,8 @@ class Center(db.Model):
             self.invite_code = self.generate_invite_code()
 
     def generate_invite_code(self):
-        """Generate a unique 8-character invite code for teachers"""
         while True:
-            code = secrets.token_hex(4).upper()  # 8 character hex code
+            code = secrets.token_hex(4).upper()  
             existing = Center.query.filter_by(invite_code=code).first()
             if not existing:
                 return code
@@ -62,7 +57,6 @@ class Center(db.Model):
         return f'<Center {self.center_name}>'
 
 class Teacher(db.Model):
-    """Teacher information"""
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     center_id = db.Column(db.Integer, db.ForeignKey('center.id'), nullable=False)
@@ -70,7 +64,6 @@ class Teacher(db.Model):
     bio = db.Column(db.Text)
     hire_date = db.Column(db.Date, default=datetime.utcnow().date)
     
-    # Relationships
     user = db.relationship('User', backref=db.backref('teacher_profile', uselist=False))
     center = db.relationship('Center', backref=db.backref('teachers', lazy=True))
 
@@ -78,33 +71,29 @@ class Teacher(db.Model):
         return f'<Teacher {self.user.name} at {self.center.center_name}>'
 
 class Child(db.Model):
-    """Children registered by parents"""
     id = db.Column(db.Integer, primary_key=True)
     parent_id = db.Column(db.Integer, db.ForeignKey('parent.id'), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     birth_date = db.Column(db.Date)
     grade = db.Column(db.String(20))
     notes = db.Column(db.Text)
-    photo_url = db.Column(db.String(255))  # For uploaded photos
-    medical_info = db.Column(db.Text)  # Important medical information
-    emergency_contact = db.Column(db.String(100))  # Emergency contact name
-    emergency_phone = db.Column(db.String(20))  # Emergency contact phone
+    photo_url = db.Column(db.String(255)) 
+    medical_info = db.Column(db.Text)  
+    emergency_contact = db.Column(db.String(100))  
+    emergency_phone = db.Column(db.String(20))  
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationship
     parent = db.relationship('Parent', backref=db.backref('children', lazy=True))
     
     def calculate_age(self):
-        """Calculate child's current age"""
         if self.birth_date:
             today = date.today()
             return today.year - self.birth_date.year - ((today.month, today.day) < (self.birth_date.month, self.birth_date.day))
         return None
     
     def get_age_display(self):
-        """Get formatted age display"""
         age = self.calculate_age()
         if age:
             return f"{age} years old"
@@ -114,21 +103,18 @@ class Child(db.Model):
         return f'<Child {self.name}>'
 
 class Category(db.Model):
-    """Program categories with nested structure"""
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     parent_id = db.Column(db.Integer, db.ForeignKey('category.id'))
-    icon = db.Column(db.String(50))  # Bootstrap icon class
-    color = db.Column(db.String(7), default='#6c757d')  # Hex color code
+    icon = db.Column(db.String(50))  
+    color = db.Column(db.String(7), default='#6c757d')  
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Self-referencing relationship for nested categories
     parent = db.relationship('Category', remote_side=[id], backref='subcategories')
     
     def get_full_path(self):
-        """Get full category path like 'Sports → Martial Arts → Boxing'"""
         path = [self.name]
         current = self.parent
         while current:
@@ -137,7 +123,6 @@ class Category(db.Model):
         return ' → '.join(path)
     
     def get_all_children(self):
-        """Get all subcategories recursively"""
         children = list(self.subcategories)
         for child in self.subcategories:
             children.extend(child.get_all_children())
@@ -268,10 +253,10 @@ class Enrollment(db.Model):
     
     enrollment_date = db.Column(db.Date, default=date.today)
     start_date = db.Column(db.Date, default=date.today)
-    end_date = db.Column(db.Date)  # Optional end date
-    status = db.Column(db.String(20), default='active')  # active, paused, cancelled, completed
+    end_date = db.Column(db.Date)  
+    status = db.Column(db.String(20), default='active')  
     
-    payment_method = db.Column(db.String(50))  # monthly, per_session, etc.
+    payment_method = db.Column(db.String(50))  
     monthly_fee = db.Column(db.Float)
     session_fee = db.Column(db.Float)
     total_paid = db.Column(db.Float, default=0.0)
@@ -283,45 +268,36 @@ class Enrollment(db.Model):
     approved_by = db.Column(db.Integer, db.ForeignKey('user.id'))  
     approved_at = db.Column(db.DateTime)
     
-    # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationships
     child = db.relationship('Child', backref=db.backref('enrollments', lazy=True))
     schedule = db.relationship('Schedule', backref=db.backref('enrollments', lazy=True))
     creator = db.relationship('User', foreign_keys=[created_by])
     approver = db.relationship('User', foreign_keys=[approved_by])
     
     def get_program_name(self):
-        """Get the program name for this enrollment"""
         return self.schedule.program.name
     
     def get_center_name(self):
-        """Get the center name for this enrollment"""
         return self.schedule.program.center.center_name
     
     def get_schedule_info(self):
-        """Get formatted schedule information"""
         return f"{self.schedule.get_day_name()} {self.schedule.get_time_range()}"
     
     def calculate_monthly_fee(self):
-        """Calculate monthly fee based on program pricing"""
         if self.schedule.program.price_per_month:
             return self.schedule.program.price_per_month
         elif self.schedule.program.price_per_session:
-            # Estimate based on sessions per month (assume 4 sessions per month)
             return self.schedule.program.price_per_session * 4
         return 0.0
     
     def is_payment_overdue(self):
-        """Check if payment is overdue"""
         if self.next_payment_due and self.outstanding_balance > 0:
             return date.today() > self.next_payment_due
         return False
     
     def get_status_display(self):
-        """Get user-friendly status display"""
         status_map = {
             'active': 'Active',
             'paused': 'Paused',
@@ -356,7 +332,6 @@ class Attendance(db.Model):
     enrollment = db.relationship('Enrollment', backref=db.backref('attendance_records', lazy=True))
     
     def get_status_display(self):
-        """Get user-friendly status display"""
         status_map = {
             'present': 'Present',
             'absent': 'Absent',
