@@ -245,6 +245,39 @@ class Schedule(db.Model):
     
     def __repr__(self):
         return f'<Schedule {self.program.name} - {self.get_day_name()} {self.get_time_range()}>'
+    
+    def get_enrollment_count_by_status(self, status=None):
+        """Get enrollment count by status"""
+        if status:
+            return len([e for e in self.enrollments if e.status == status])
+        return len(self.enrollments)
+
+    def get_active_enrollment_count(self):
+        """Get count of active enrollments"""
+        return self.get_enrollment_count_by_status('active')
+
+    def get_pending_enrollment_count(self):
+        """Get count of pending enrollments"""
+        return self.get_enrollment_count_by_status('pending')
+
+    def get_total_enrollment_count(self):
+        """Get total enrollment count (active + pending)"""
+        return len([e for e in self.enrollments if e.status in ['active', 'pending']])
+
+    def get_available_spots(self):
+        """Get number of available spots"""
+        return max(0, self.max_students - self.get_total_enrollment_count())
+
+    def is_full(self):
+        """Check if schedule is at capacity"""
+        return self.get_total_enrollment_count() >= self.max_students
+
+    def has_availability(self):
+        """Check if schedule has available spots"""
+        return self.get_available_spots() > 0
+
+# ENHANCED ENROLLMENT MODEL
+# Add these methods to the Enrollment class in models.py or replace the existing class
 
 class Enrollment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -254,8 +287,9 @@ class Enrollment(db.Model):
     enrollment_date = db.Column(db.Date, default=date.today)
     start_date = db.Column(db.Date, default=date.today)
     end_date = db.Column(db.Date)  
-    status = db.Column(db.String(20), default='active')  
+    status = db.Column(db.String(20), default='pending')  # pending, active, paused, cancelled, completed
     
+    # Payment information
     payment_method = db.Column(db.String(50))  
     monthly_fee = db.Column(db.Float)
     session_fee = db.Column(db.Float)
@@ -263,42 +297,61 @@ class Enrollment(db.Model):
     outstanding_balance = db.Column(db.Float, default=0.0)
     next_payment_due = db.Column(db.Date)
     
+    # Administrative fields
     notes = db.Column(db.Text)
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'))  
     approved_by = db.Column(db.Integer, db.ForeignKey('user.id'))  
     approved_at = db.Column(db.DateTime)
     
+    # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
+    # Relationships
     child = db.relationship('Child', backref=db.backref('enrollments', lazy=True))
     schedule = db.relationship('Schedule', backref=db.backref('enrollments', lazy=True))
     creator = db.relationship('User', foreign_keys=[created_by])
     approver = db.relationship('User', foreign_keys=[approved_by])
     
     def get_program_name(self):
+        """Get the name of the program this enrollment is for"""
         return self.schedule.program.name
     
     def get_center_name(self):
+        """Get the name of the center offering this program"""
         return self.schedule.program.center.center_name
     
     def get_schedule_info(self):
+        """Get formatted schedule information"""
         return f"{self.schedule.get_day_name()} {self.schedule.get_time_range()}"
     
+    def get_full_schedule_info(self):
+        """Get detailed schedule information including room and teacher"""
+        info = self.get_schedule_info()
+        if self.schedule.room_name:
+            info += f" in {self.schedule.room_name}"
+        info += f" with {self.schedule.teacher.user.name}"
+        return info
+    
     def calculate_monthly_fee(self):
+        """Calculate the monthly fee for this enrollment"""
         if self.schedule.program.price_per_month:
             return self.schedule.program.price_per_month
         elif self.schedule.program.price_per_session:
+            # Assume 4 sessions per month
             return self.schedule.program.price_per_session * 4
         return 0.0
     
     def is_payment_overdue(self):
+        """Check if payment is overdue"""
         if self.next_payment_due and self.outstanding_balance > 0:
             return date.today() > self.next_payment_due
         return False
     
     def get_status_display(self):
+        """Get human-readable status"""
         status_map = {
+            'pending': 'Pending Approval',
             'active': 'Active',
             'paused': 'Paused',
             'cancelled': 'Cancelled',
@@ -307,16 +360,124 @@ class Enrollment(db.Model):
         return status_map.get(self.status, self.status.title())
     
     def get_status_badge_class(self):
+        """Get Bootstrap badge class for status"""
         status_classes = {
+            'pending': 'bg-warning text-dark',
             'active': 'bg-success',
-            'paused': 'bg-warning',
+            'paused': 'bg-info',
             'cancelled': 'bg-danger',
-            'completed': 'bg-info'
+            'completed': 'bg-secondary'
         }
         return status_classes.get(self.status, 'bg-secondary')
-
+    
+    def get_status_icon(self):
+        """Get Bootstrap icon for status"""
+        status_icons = {
+            'pending': 'bi-clock',
+            'active': 'bi-check-circle',
+            'paused': 'bi-pause-circle',
+            'cancelled': 'bi-x-circle',
+            'completed': 'bi-check-square'
+        }
+        return status_icons.get(self.status, 'bi-circle')
+    
+    def can_be_cancelled(self):
+        """Check if enrollment can be cancelled"""
+        return self.status in ['pending', 'active', 'paused']
+    
+    def can_be_approved(self):
+        """Check if enrollment can be approved"""
+        return self.status == 'pending'
+    
+    def can_be_paused(self):
+        """Check if enrollment can be paused"""
+        return self.status == 'active'
+    
+    def approve(self, approved_by_user_id):
+        """Approve the enrollment"""
+        if not self.can_be_approved():
+            raise ValueError("Enrollment cannot be approved in its current status")
+        
+        self.status = 'active'
+        self.approved_by = approved_by_user_id
+        self.approved_at = datetime.utcnow()
+        
+        # Set up payment schedule if needed
+        if not self.monthly_fee:
+            self.monthly_fee = self.calculate_monthly_fee()
+        
+        # Set next payment due date (next month)
+        if not self.next_payment_due:
+            from datetime import date, timedelta
+            import calendar
+            
+            today = date.today()
+            if today.month == 12:
+                next_month = today.replace(year=today.year + 1, month=1, day=1)
+            else:
+                next_month = today.replace(month=today.month + 1, day=1)
+            
+            # Set to last day of next month
+            last_day = calendar.monthrange(next_month.year, next_month.month)[1]
+            self.next_payment_due = next_month.replace(day=last_day)
+    
+    def cancel(self, reason=None):
+        """Cancel the enrollment"""
+        if not self.can_be_cancelled():
+            raise ValueError("Enrollment cannot be cancelled in its current status")
+        
+        self.status = 'cancelled'
+        if reason:
+            self.notes = f"{self.notes or ''}\nCancelled: {reason}".strip()
+    
+    def pause(self, reason=None):
+        """Pause the enrollment"""
+        if not self.can_be_paused():
+            raise ValueError("Enrollment cannot be paused in its current status")
+        
+        self.status = 'paused'
+        if reason:
+            self.notes = f"{self.notes or ''}\nPaused: {reason}".strip()
+    
+    def resume(self):
+        """Resume a paused enrollment"""
+        if self.status != 'paused':
+            raise ValueError("Only paused enrollments can be resumed")
+        
+        self.status = 'active'
+    
+    def get_attendance_summary(self):
+        """Get attendance summary for this enrollment"""
+        if not hasattr(self, 'attendance_records'):
+            return {
+                'total': 0,
+                'present': 0,
+                'absent': 0,
+                'late': 0,
+                'excused': 0,
+                'rate': 0
+            }
+        
+        total = len(self.attendance_records)
+        present = len([a for a in self.attendance_records if a.status == 'present'])
+        absent = len([a for a in self.attendance_records if a.status == 'absent'])
+        late = len([a for a in self.attendance_records if a.status == 'late'])
+        excused = len([a for a in self.attendance_records if a.status == 'excused'])
+        
+        rate = (present / total * 100) if total > 0 else 0
+        
+        return {
+            'total': total,
+            'present': present,
+            'absent': absent,
+            'late': late,
+            'excused': excused,
+            'rate': round(rate, 1)
+        }
+    
     def __repr__(self):
-        return f'<Enrollment {self.child.name} in {self.schedule.program.name}>'
+        return f'<Enrollment {self.child.name} in {self.schedule.program.name} ({self.status})>'
+
 
 class Attendance(db.Model):
     id = db.Column(db.Integer, primary_key=True)
