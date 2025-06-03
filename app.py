@@ -51,7 +51,6 @@ def save_uploaded_file(file, folder='general'):
 
 @app.route('/')
 def index():
-    """Landing page - redirect based on login status"""
     if 'user_id' in session:
         return redirect(url_for('dashboard'))
     return render_template('index.html')
@@ -398,59 +397,6 @@ def delete_child(child_id):
         flash('Error deleting child. Please try again.', 'danger')
     
     return redirect(url_for('manage_children'))
-
-@app.route('/enroll/<int:schedule_id>/<int:child_id>', methods=['POST'])
-@login_required(role='parent')
-def enroll_child(schedule_id, child_id):
-    parent = Parent.query.filter_by(user_id=session['user_id']).first()
-    child = Child.query.filter_by(id=child_id, parent_id=parent.id).first()
-    schedule = Schedule.query.get_or_404(schedule_id)
-    
-    if not child:
-        return jsonify({'error': 'Child not found'}), 404
-    
-    existing = Enrollment.query.filter_by(
-        child_id=child_id, 
-        schedule_id=schedule_id,
-        status='active'
-    ).first()
-    
-    if existing:
-        return jsonify({'error': 'Child is already enrolled in this class'}), 400
-    
-    if child.birth_date:
-        child_age = date.today().year - child.birth_date.year
-        if schedule.program.min_age and child_age < schedule.program.min_age:
-            return jsonify({'error': f'Child is too young for this program (minimum age: {schedule.program.min_age})'}), 400
-        if schedule.program.max_age and child_age > schedule.program.max_age:
-            return jsonify({'error': f'Child is too old for this program (maximum age: {schedule.program.max_age})'}), 400
-    
-    current_enrollments = Enrollment.query.filter_by(
-        schedule_id=schedule_id,
-        status='active'
-    ).count()
-    
-    if current_enrollments >= schedule.max_students:
-        return jsonify({'error': 'Class is full'}), 400
-    
-    try:
-        enrollment = Enrollment(
-            child_id=child_id,
-            schedule_id=schedule_id,
-            status='active'
-        )
-        
-        db.session.add(enrollment)
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': f'{child.name} has been enrolled in {schedule.program.name}!'
-        })
-        
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': 'Enrollment failed. Please try again.'}), 500
 
 @app.route('/api/centers')
 def api_centers():
@@ -1151,32 +1097,6 @@ def center_enrollments():
                          pending_enrollments=pending_enrollments,
                          cancelled_enrollments=cancelled_enrollments)
 
-@app.route('/center/enrollment/<int:enrollment_id>/approve', methods=['POST'])
-@login_required(role='center')
-def approve_enrollment(enrollment_id):
-    center = Center.query.filter_by(user_id=session['user_id']).first()
-    enrollment = db.session.query(Enrollment).join(Schedule).join(Program).filter(
-        Enrollment.id == enrollment_id,
-        Program.center_id == center.id
-    ).first()
-    
-    if not enrollment:
-        return jsonify({'error': 'Enrollment not found'}), 404
-    
-    try:
-        enrollment.status = 'active'
-        enrollment.approved_by = session['user_id']
-        enrollment.approved_at = datetime.utcnow()
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': f'Enrollment approved for {enrollment.child.name}'
-        })
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': 'Failed to approve enrollment'}), 500
-
 @app.route('/parent/enrollments')
 @login_required(role='parent')
 def parent_enrollments():
@@ -1189,31 +1109,6 @@ def parent_enrollments():
     return render_template('parent/enrollments.html',
                          parent=parent,
                          enrollments=enrollments)
-
-@app.route('/api/child/<int:child_id>/enrollments')
-@login_required(role='parent')
-def api_child_enrollments(child_id):
-    parent = Parent.query.filter_by(user_id=session['user_id']).first()
-    child = Child.query.filter_by(id=child_id, parent_id=parent.id).first()
-    
-    if not child:
-        return jsonify({'error': 'Child not found'}), 404
-    
-    enrollments_data = []
-    for enrollment in child.enrollments:
-        enrollment_data = {
-            'id': enrollment.id,
-            'program_name': enrollment.schedule.program.name,
-            'center_name': enrollment.schedule.program.center.center_name,
-            'schedule': enrollment.get_schedule_info(),
-            'status': enrollment.status,
-            'enrollment_date': enrollment.enrollment_date.strftime('%Y-%m-%d'),
-            'status_display': enrollment.get_status_display(),
-            'status_class': enrollment.get_status_badge_class()
-        }
-        enrollments_data.append(enrollment_data)
-    
-    return jsonify({'enrollments': enrollments_data})
 
 @app.route('/api/center/<int:center_id>/stats')
 def api_center_stats(center_id):
@@ -1404,160 +1299,6 @@ def remove_teacher(teacher_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': 'Failed to remove teacher'}), 500
-
-@app.route('/api/child/<int:child_id>/available-programs')
-@login_required(role='parent')
-def get_available_programs_for_child(child_id):
-    parent = Parent.query.filter_by(user_id=session['user_id']).first()
-    child = Child.query.filter_by(id=child_id, parent_id=parent.id).first()
-    
-    if not child:
-        return jsonify({'error': 'Child not found'}), 404
-    
-    child_age = None
-    if child.birth_date:
-        from datetime import date
-        child_age = date.today().year - child.birth_date.year
-    
-    schedules = Schedule.query.filter_by(is_active=True).all()
-    
-    available_programs = []
-    processed_programs = set()
-    
-    for schedule in schedules:
-        if schedule.program.id in processed_programs:
-            continue
-        
-        existing = Enrollment.query.filter_by(
-            child_id=child_id,
-            schedule_id=schedule.id,
-            status='active'
-        ).first()
-        
-        if existing:
-            continue
-        
-        if child_age:
-            if schedule.program.min_age and child_age < schedule.program.min_age:
-                continue
-            if schedule.program.max_age and child_age > schedule.program.max_age:
-                continue
-        
-        current_enrollments = Enrollment.query.filter_by(
-            schedule_id=schedule.id,
-            status='active'
-        ).count()
-        
-        if current_enrollments >= schedule.max_students:
-            continue
-        
-        program_schedules = Schedule.query.filter_by(
-            program_id=schedule.program.id,
-            is_active=True
-        ).all()
-        
-        available_schedules = []
-        for prog_schedule in program_schedules:
-            current_count = Enrollment.query.filter_by(
-                schedule_id=prog_schedule.id,
-                status='active'
-            ).count()
-            
-            if current_count < prog_schedule.max_students:
-                available_schedules.append({
-                    'id': prog_schedule.id,
-                    'day_name': prog_schedule.get_day_name(),
-                    'time_range': prog_schedule.get_time_range(),
-                    'teacher_name': prog_schedule.teacher.user.name,
-                    'room_name': prog_schedule.room_name,
-                    'available_spots': prog_schedule.max_students - current_count,
-                    'max_students': prog_schedule.max_students
-                })
-        
-        if available_schedules:
-            program_data = {
-                'id': schedule.program.id,
-                'name': schedule.program.name,
-                'short_description': schedule.program.short_description,
-                'description': schedule.program.description,
-                'center_name': schedule.program.center.center_name,
-                'center_id': schedule.program.center.id,
-                'category_icon': schedule.program.category.icon,
-                'category_color': schedule.program.category.color,
-                'category_name': schedule.program.category.name,
-                'price_display': schedule.program.get_price_display(),
-                'age_range': schedule.program.get_age_range(),
-                'duration_minutes': schedule.program.duration_minutes,
-                'schedules': available_schedules
-            }
-            
-            available_programs.append(program_data)
-            processed_programs.add(schedule.program.id)
-    
-    return jsonify({'programs': available_programs})
-
-@app.route('/api/enroll', methods=['POST'])
-@login_required(role='parent')
-def api_enroll_child():
-    data = request.get_json()
-    child_id = data.get('child_id')
-    schedule_id = data.get('schedule_id')
-    
-    parent = Parent.query.filter_by(user_id=session['user_id']).first()
-    child = Child.query.filter_by(id=child_id, parent_id=parent.id).first()
-    schedule = Schedule.query.get(schedule_id)
-    
-    if not child:
-        return jsonify({'error': 'Child not found'}), 404
-    
-    if not schedule:
-        return jsonify({'error': 'Schedule not found'}), 404
-    
-    existing = Enrollment.query.filter_by(
-        child_id=child_id,
-        schedule_id=schedule_id,
-        status__in=['active', 'pending']
-    ).first()
-    
-    if existing:
-        return jsonify({'error': 'Child is already enrolled or has a pending enrollment in this class'}), 400
-    
-    if child.birth_date:
-        child_age = date.today().year - child.birth_date.year
-        if schedule.program.min_age and child_age < schedule.program.min_age:
-            return jsonify({'error': f'Child is too young for this program (minimum age: {schedule.program.min_age})'}), 400
-        if schedule.program.max_age and child_age > schedule.program.max_age:
-            return jsonify({'error': f'Child is too old for this program (maximum age: {schedule.program.max_age})'}), 400
-    
-    current_enrollments = Enrollment.query.filter_by(
-        schedule_id=schedule_id,
-        status__in=['active', 'pending']
-    ).count()
-    
-    if current_enrollments >= schedule.max_students:
-        return jsonify({'error': 'Class is full'}), 400
-    
-    try:
-        enrollment = Enrollment(
-            child_id=child_id,
-            schedule_id=schedule_id,
-            status='pending',  
-            created_by=session['user_id'],
-            monthly_fee=schedule.program.price_per_month,
-            session_fee=schedule.program.price_per_session
-        )
-        
-        db.session.add(enrollment)
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': f'{child.name} has been enrolled in {schedule.program.name}! Your enrollment is pending center approval.'
-        })
-        
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': 'Enrollment failed. Please try again.'}), 500
 
 @app.route('/teacher/student/<int:child_id>/details')
 @login_required(role='teacher')
@@ -1998,42 +1739,6 @@ def export_class_list():
     
     return response
 
-@app.route('/enrollment/<int:enrollment_id>/cancel', methods=['POST'])
-@login_required()
-def cancel_enrollment(enrollment_id):
-    user_role = session.get('user_role')
-    
-    if user_role == 'parent':
-        parent = Parent.query.filter_by(user_id=session['user_id']).first()
-        enrollment = Enrollment.query.join(Child).filter(
-            Enrollment.id == enrollment_id,
-            Child.parent_id == parent.id
-        ).first()
-    elif user_role == 'center':
-        center = Center.query.filter_by(user_id=session['user_id']).first()
-        enrollment = Enrollment.query.join(Schedule).join(Program).filter(
-            Enrollment.id == enrollment_id,
-            Program.center_id == center.id
-        ).first()
-    else:
-        return jsonify({'error': 'Access denied'}), 403
-    
-    if not enrollment:
-        return jsonify({'error': 'Enrollment not found'}), 404
-    
-    try:
-        enrollment.status = 'cancelled'
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': f'Enrollment cancelled for {enrollment.child.name}'
-        })
-        
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': 'Failed to cancel enrollment'}), 500
-
 @app.route('/api/centers/search')
 def api_centers_search():
     query = request.args.get('q', '').strip()
@@ -2196,68 +1901,6 @@ def system_health():
             'error': str(e),
             'timestamp': datetime.utcnow().isoformat()
         }), 500
-    
-@app.route('/api/enroll', methods=['POST'])
-@login_required(role='parent')
-def api_enroll_child_fixed():
-    data = request.get_json()
-    child_id = data.get('child_id')
-    schedule_id = data.get('schedule_id')
-    
-    parent = Parent.query.filter_by(user_id=session['user_id']).first()
-    child = Child.query.filter_by(id=child_id, parent_id=parent.id).first()
-    schedule = Schedule.query.get(schedule_id)
-    
-    if not child:
-        return jsonify({'error': 'Child not found'}), 404
-    
-    if not schedule:
-        return jsonify({'error': 'Schedule not found'}), 404
-    
-    existing = Enrollment.query.filter_by(
-        child_id=child_id,
-        schedule_id=schedule_id
-    ).filter(Enrollment.status.in_(['active', 'pending'])).first()
-    
-    if existing:
-        return jsonify({'error': 'Child is already enrolled or has a pending enrollment in this class'}), 400
-    
-    if child.birth_date:
-        from datetime import date
-        child_age = date.today().year - child.birth_date.year
-        if schedule.program.min_age and child_age < schedule.program.min_age:
-            return jsonify({'error': f'Child is too young for this program (minimum age: {schedule.program.min_age})'}), 400
-        if schedule.program.max_age and child_age > schedule.program.max_age:
-            return jsonify({'error': f'Child is too old for this program (maximum age: {schedule.program.max_age})'}), 400
-    
-    current_enrollments = Enrollment.query.filter_by(
-        schedule_id=schedule_id
-    ).filter(Enrollment.status.in_(['active', 'pending'])).count()
-    
-    if current_enrollments >= schedule.max_students:
-        return jsonify({'error': 'Class is full'}), 400
-    
-    try:
-        enrollment = Enrollment(
-            child_id=child_id,
-            schedule_id=schedule_id,
-            status='pending', 
-            created_by=session['user_id'],
-            monthly_fee=schedule.program.price_per_month,
-            session_fee=schedule.program.price_per_session
-        )
-        
-        db.session.add(enrollment)
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': f'{child.name} has been enrolled in {schedule.program.name}! Your enrollment is pending center approval.'
-        })
-        
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': 'Enrollment failed. Please try again.'}), 500
 
 @app.route('/api/child/<int:child_id>/available-programs')
 @login_required(role='parent')
@@ -2373,8 +2016,291 @@ def enroll_from_program(program_id):
         flash('No available class schedules for this program.', 'warning')
         return redirect(url_for('view_program', program_id=program_id))
 
+@app.route('/api/enroll', methods=['POST'])
+@login_required(role='parent')
+def api_enroll_child():
+    """Unified enrollment endpoint"""
+    try:
+        data = request.get_json()
+        child_id = data.get('child_id')
+        schedule_id = data.get('schedule_id')
+        
+        if not child_id or not schedule_id:
+            return jsonify({'error': 'Missing child_id or schedule_id'}), 400
+        
+        parent = Parent.query.filter_by(user_id=session['user_id']).first()
+        if not parent:
+            return jsonify({'error': 'Parent profile not found'}), 404
+            
+        child = Child.query.filter_by(id=child_id, parent_id=parent.id).first()
+        if not child:
+            return jsonify({'error': 'Child not found or access denied'}), 404
+        
+        schedule = Schedule.query.filter_by(id=schedule_id, is_active=True).first()
+        if not schedule:
+            return jsonify({'error': 'Schedule not found or inactive'}), 404
+        
+        existing = Enrollment.query.filter_by(
+            child_id=child_id,
+            schedule_id=schedule_id
+        ).filter(Enrollment.status.in_(['active', 'pending'])).first()
+        
+        if existing:
+            return jsonify({'error': 'Child is already enrolled or has a pending enrollment in this class'}), 400
+        
+        if child.birth_date:
+            from datetime import date
+            child_age = date.today().year - child.birth_date.year
+            if schedule.program.min_age and child_age < schedule.program.min_age:
+                return jsonify({'error': f'Child is too young for this program (minimum age: {schedule.program.min_age})'}), 400
+            if schedule.program.max_age and child_age > schedule.program.max_age:
+                return jsonify({'error': f'Child is too old for this program (maximum age: {schedule.program.max_age})'}), 400
+        
+        current_enrollments = Enrollment.query.filter_by(
+            schedule_id=schedule_id
+        ).filter(Enrollment.status.in_(['active', 'pending'])).count()
+        
+        if current_enrollments >= schedule.max_students:
+            return jsonify({'error': 'Class is full'}), 400
+        
+        enrollment = Enrollment(
+            child_id=child_id,
+            schedule_id=schedule_id,
+            status='pending',  
+            created_by=session['user_id'],
+            monthly_fee=schedule.program.price_per_month,
+            session_fee=schedule.program.price_per_session
+        )
+        
+        db.session.add(enrollment)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'{child.name} has been enrolled in {schedule.program.name}! Your enrollment is pending center approval.'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f'Enrollment error: {str(e)}')
+        return jsonify({'error': 'Enrollment failed. Please try again.'}), 500
+
+
+@app.route('/api/child/<int:child_id>/available-programs')
+@login_required(role='parent')
+def get_available_programs_for_child(child_id):
+    try:
+        parent = Parent.query.filter_by(user_id=session['user_id']).first()
+        if not parent:
+            return jsonify({'error': 'Parent profile not found'}), 404
+            
+        child = Child.query.filter_by(id=child_id, parent_id=parent.id).first()
+        if not child:
+            return jsonify({'error': 'Child not found'}), 404
+        
+        child_age = None
+        if child.birth_date:
+            from datetime import date
+            child_age = date.today().year - child.birth_date.year
+        
+        schedules = Schedule.query.filter_by(is_active=True).all()
+        
+        available_programs = []
+        processed_programs = set()
+        
+        for schedule in schedules:
+            if schedule.program.id in processed_programs:
+                continue
+            
+            existing_in_program = Enrollment.query.join(Schedule).filter(
+                Schedule.program_id == schedule.program.id,
+                Enrollment.child_id == child_id,
+                Enrollment.status.in_(['active', 'pending'])
+            ).first()
+            
+            if existing_in_program:
+                continue
+            
+            if child_age:
+                if schedule.program.min_age and child_age < schedule.program.min_age:
+                    continue
+                if schedule.program.max_age and child_age > schedule.program.max_age:
+                    continue
+            
+            program_schedules = Schedule.query.filter_by(
+                program_id=schedule.program.id,
+                is_active=True
+            ).all()
+            
+            available_schedules = []
+            for prog_schedule in program_schedules:
+                existing_in_schedule = Enrollment.query.filter_by(
+                    child_id=child_id,
+                    schedule_id=prog_schedule.id
+                ).filter(Enrollment.status.in_(['active', 'pending'])).first()
+                
+                if existing_in_schedule:
+                    continue
+                
+                current_count = Enrollment.query.filter_by(
+                    schedule_id=prog_schedule.id
+                ).filter(Enrollment.status.in_(['active', 'pending'])).count()
+                
+                if current_count < prog_schedule.max_students:
+                    available_schedules.append({
+                        'id': prog_schedule.id,
+                        'day_name': prog_schedule.get_day_name(),
+                        'time_range': prog_schedule.get_time_range(),
+                        'teacher_name': prog_schedule.teacher.user.name,
+                        'room_name': prog_schedule.room_name,
+                        'available_spots': prog_schedule.max_students - current_count,
+                        'max_students': prog_schedule.max_students
+                    })
+            
+            if available_schedules:
+                program_data = {
+                    'id': schedule.program.id,
+                    'name': schedule.program.name,
+                    'short_description': schedule.program.short_description,
+                    'description': schedule.program.description,
+                    'center_name': schedule.program.center.center_name,
+                    'center_id': schedule.program.center.id,
+                    'category_icon': schedule.program.category.icon,
+                    'category_color': schedule.program.category.color,
+                    'category_name': schedule.program.category.name,
+                    'price_display': schedule.program.get_price_display(),
+                    'age_range': schedule.program.get_age_range(),
+                    'duration_minutes': schedule.program.duration_minutes,
+                    'schedules': available_schedules
+                }
+                
+                available_programs.append(program_data)
+                processed_programs.add(schedule.program.id)
+        
+        return jsonify({'programs': available_programs})
+        
+    except Exception as e:
+        app.logger.error(f'Error getting available programs: {str(e)}')
+        return jsonify({'error': 'Failed to load programs'}), 500
+
+
+@app.route('/api/child/<int:child_id>/enrollments')
+@login_required(role='parent')
+def api_child_enrollments(child_id):
+    try:
+        parent = Parent.query.filter_by(user_id=session['user_id']).first()
+        if not parent:
+            return jsonify({'error': 'Parent profile not found'}), 404
+            
+        child = Child.query.filter_by(id=child_id, parent_id=parent.id).first()
+        if not child:
+            return jsonify({'error': 'Child not found'}), 404
+        
+        enrollments_data = []
+        for enrollment in child.enrollments:
+            enrollment_data = {
+                'id': enrollment.id,
+                'program_name': enrollment.schedule.program.name,
+                'center_name': enrollment.schedule.program.center.center_name,
+                'schedule': enrollment.get_schedule_info(),
+                'status': enrollment.status,
+                'enrollment_date': enrollment.enrollment_date.strftime('%Y-%m-%d'),
+                'status_display': enrollment.get_status_display(),
+                'status_class': enrollment.get_status_badge_class()
+            }
+            enrollments_data.append(enrollment_data)
+        
+        return jsonify({'enrollments': enrollments_data})
+        
+    except Exception as e:
+        app.logger.error(f'Error getting child enrollments: {str(e)}')
+        return jsonify({'error': 'Failed to load enrollments'}), 500
+
+
+@app.route('/enrollment/<int:enrollment_id>/cancel', methods=['POST'])
+@login_required()
+def cancel_enrollment(enrollment_id):
+    try:
+        user_role = session.get('user_role')
+        
+        if user_role == 'parent':
+            parent = Parent.query.filter_by(user_id=session['user_id']).first()
+            if not parent:
+                return jsonify({'error': 'Parent profile not found'}), 404
+                
+            enrollment = Enrollment.query.join(Child).filter(
+                Enrollment.id == enrollment_id,
+                Child.parent_id == parent.id
+            ).first()
+        elif user_role == 'center':
+            center = Center.query.filter_by(user_id=session['user_id']).first()
+            if not center:
+                return jsonify({'error': 'Center profile not found'}), 404
+                
+            enrollment = Enrollment.query.join(Schedule).join(Program).filter(
+                Enrollment.id == enrollment_id,
+                Program.center_id == center.id
+            ).first()
+        else:
+            return jsonify({'error': 'Access denied'}), 403
+        
+        if not enrollment:
+            return jsonify({'error': 'Enrollment not found or access denied'}), 404
+        
+        enrollment.status = 'cancelled'
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Enrollment cancelled for {enrollment.child.name}'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f'Error cancelling enrollment: {str(e)}')
+        return jsonify({'error': 'Failed to cancel enrollment'}), 500
+
+
+@app.route('/center/enrollment/<int:enrollment_id>/approve', methods=['POST'])
+@login_required(role='center')
+def approve_enrollment(enrollment_id):
+    try:
+        center = Center.query.filter_by(user_id=session['user_id']).first()
+        if not center:
+            return jsonify({'error': 'Center profile not found'}), 404
+            
+        enrollment = db.session.query(Enrollment).join(Schedule).join(Program).filter(
+            Enrollment.id == enrollment_id,
+            Program.center_id == center.id,
+            Enrollment.status == 'pending'
+        ).first()
+        
+        if not enrollment:
+            return jsonify({'error': 'Enrollment not found or already processed'}), 404
+        
+        current_count = Enrollment.query.filter_by(
+            schedule_id=enrollment.schedule_id
+        ).filter(Enrollment.status.in_(['active', 'pending'])).count()
+        
+        if current_count > enrollment.schedule.max_students:
+            return jsonify({'error': 'Class is now full, cannot approve'}), 400
+        
+        enrollment.status = 'active'
+        enrollment.approved_by = session['user_id']
+        enrollment.approved_at = datetime.utcnow()
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Enrollment approved for {enrollment.child.name}'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f'Error approving enrollment: {str(e)}')
+        return jsonify({'error': 'Failed to approve enrollment'}), 500
+    
 def create_tables():
-    """Create database tables"""
     with app.app_context():
         db.create_all()
         init_default_categories()
